@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Farm Stars</title>
+
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+body{
+    margin:0;
+    background:#080c12;
+    color:#fff;
+    font-family:Arial,sans-serif;
+}
+
+.app{
+    max-width:600px;
+    margin:auto;
+    min-height:100vh;
+    padding-bottom:85px;
+}
+
+header{
+    position:sticky;
+    top:0;
+    z-index:20;
+    background:rgba(10,14,21,.94);
+    backdrop-filter:blur(15px);
+    padding:12px 14px;
+    border-bottom:1px solid #202a38;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    font-size:20px;
+    font-weight:800;
+}
+
+.star-balance{
+    background:#202a38;
+    border:1px solid #334054;
+    padding:8px 11px;
+    border-radius:12px;
+    font-weight:bold;
+}
+
+main{padding:14px}
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.card{
+    background:#121925;
+    border:1px solid #273244;
+    border-radius:20px;
+    padding:16px;
+    margin-bottom:13px;
+}
+
+h1,h2,h3{
+    margin-top:0;
+}
+
+.muted{
+    color:#8995a7;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+
+.game{
+    position:relative;
+    min-height:145px;
+    background:#151e2c;
+    border:1px solid #29364a;
+    border-radius:18px;
+    padding:15px;
+    cursor:pointer;
+}
+
+.game-icon{
+    font-size:38px;
+    margin-bottom:10px;
+}
+
+.game-title{
+    font-size:17px;
+    font-weight:bold;
+}
+
+.game-desc{
+    margin-top:6px;
+    color:#8d99aa;
+    font-size:12px;
+}
+
+.arrow{
+    position:absolute;
+    right:13px;
+    bottom:12px;
+    color:#6e7c90;
+}
+
+button{
+    border:0;
+    border-radius:13px;
+    padding:12px 15px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.btn{
+    width:100%;
+    margin-top:8px;
+    background:linear-gradient(135deg,#ffc858,#ff9325);
+    color:#171008;
+}
+
+.btn.secondary{
+    background:#252f3f;
+    color:#fff;
+}
+
+.back{
+    background:#252f3f;
+    color:#fff;
+    margin-bottom:12px;
+}
+
+.hero{
+    min-height:190px;
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(145deg,#315d37,#162a1b);
+}
+
+.hero:after{
+    content:"🌾 🌻 🌽 🌱";
+    position:absolute;
+    left:15px;
+    bottom:15px;
+    font-size:30px;
+}
+
+.level{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+}
+
+.progress{
+    height:10px;
+    background:#080d13;
+    border-radius:20px;
+    margin-top:8px;
+    overflow:hidden;
+}
+
+.progress div{
+    height:100%;
+    background:#4cda94;
+}
+
+.farm{
+    background:linear-gradient(#397044,#203c26);
+    border-radius:20px;
+    padding:12px;
+}
+
+.farm-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+}
+
+.farm-tile{
+    min-height:88px;
+    border-radius:14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:31px;
+    background:#76502e;
+    cursor:pointer;
+}
+
+.farm-tile.building{
+    background:#5a6875;
+}
+
+.farm-tile small{
+    font-size:10px;
+    color:#ddd;
+    margin-top:4px;
+}
+
+.farm-coins{
+    background:#192d22;
+    border:1px solid #356348;
+    border-radius:15px;
+    padding:12px;
+    margin-bottom:12px;
+    text-align:center;
+}
+
+.farm-coins b{
+    color:#55dc98;
+    font-size:22px;
+}
+
+.upgrade{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    padding:12px;
+    margin-top:8px;
+    background:#182130;
+    border:1px solid #28354a;
+    border-radius:14px;
+}
+
+.upgrade button{
+    background:#ffad36;
+    padding:9px 11px;
+}
+
+.wheel-box{
+    display:flex;
+    justify-content:center;
+    position:relative;
+    margin:10px 0 20px;
+}
+
+.pointer{
+    position:absolute;
+    top:-6px;
+    z-index:5;
+    font-size:30px;
+}
+
+.wheel{
+    width:260px;
+    height:260px;
+    border-radius:50%;
+    border:10px solid #303b4d;
+    background:
+      conic-gradient(
+        #ff765f 0deg 45deg,
+        #ffc857 45deg 90deg,
+        #51d99a 90deg 135deg,
+        #4da4ff 135deg 180deg,
+        #a871ff 180deg 225deg,
+        #ff5e9d 225deg 270deg,
+        #54d5cc 270deg 315deg,
+        #ffae4d 315deg 360deg
+      );
+    transition:transform 3s cubic-bezier(.12,.7,.18,1);
+    position:relative;
+}
+
+.wheel:after{
+    content:"★";
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:65px;
+    height:65px;
+    border-radius:50%;
+    background:white;
+    color:#111;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:25px;
+}
+
+.prizes{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
+}
+
+.prize{
+    background:#202b3b;
+    padding:8px 4px;
+    border-radius:9px;
+    text-align:center;
+    font-size:11px;
+}
+
+.big{
+    text-align:center;
+    font-size:48px;
+    font-weight:900;
+    margin:18px 0;
+}
+
+.mines{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:7px;
+    max-width:350px;
+    margin:15px auto;
+}
+
+.mine{
+    aspect-ratio:1;
+    padding:0;
+    background:#293344;
+    color:white;
+    font-size:20px;
+}
+
+.mine.open{
+    background:#194330;
+}
+
+.history{
+    display:flex;
+    gap:6px;
+    overflow:hidden;
+    margin:10px 0;
+}
+
+.history span{
+    background:#202b3b;
+    border-radius:9px;
+    padding:8px 10px;
+    font-size:12px;
+}
+
+.rocket-box{
+    height:300px;
+    background:
+      radial-gradient(circle at 50% 85%,#264875,#111925 60%);
+    border:1px solid #2c3d55;
+    border-radius:20px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    align-items:center;
+    padding-bottom:25px;
+    overflow:hidden;
+}
+
+.rocket{
+    font-size:65px;
+}
+
+.multiplier{
+    color:#ffc451;
+    font-size:52px;
+    font-weight:900;
+}
+
+.rank{
+    display:grid;
+    grid-template-columns:40px 1fr 70px;
+    padding:12px 5px;
+    border-bottom:1px solid #253042;
+}
+
+.rank-place{
+    color:#8995a7;
+    font-weight:bold;
+}
+
+.rank-level{
+    color:#ffc451;
+    text-align:right;
+}
+
+.input{
+    width:100%;
+    background:#0a0e14;
+    border:1px solid #2c394c;
+    color:white;
+    padding:13px;
+    border-radius:12px;
+    outline:none;
+}
+
+.profile{
+    text-align:center;
+}
+
+.avatar{
+    width:82px;
+    height:82px;
+    border-radius:50%;
+    margin:10px auto;
+    background:linear-gradient(135deg,#ffc858,#ff8b22);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:40px;
+}
+
+.bottom{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:30;
+    background:rgba(10,14,21,.96);
+    border-top:1px solid #202a38;
+}
+
+.navbar{
+    max-width:600px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+}
+
+.nav{
+    background:none;
+    color:#718095;
+    border-radius:0;
+    padding:8px 2px;
+    font-size:10px;
+}
+
+.nav-icon{
+    display:block;
+    font-size:21px;
+    margin-bottom:3px;
+}
+
+.nav.active{
+    color:#ffc451;
+}
+
+.toast{
+    position:fixed;
+    left:50%;
+    bottom:85px;
+    transform:translateX(-50%);
+    background:white;
+    color:#111;
+    padding:11px 16px;
+    border-radius:13px;
+    font-weight:bold;
+    z-index:100;
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+    <div class="header">
+        <div class="logo">⭐ Farm Stars</div>
+
+        <!-- Здесь ТОЛЬКО Farm Stars -->
+        <div class="star-balance">
+            ⭐ <span id="stars">100</span>
+        </div>
+    </div>
+</header>
+
+<main>
+
+<!-- ================= ИГРЫ ================= -->
+
+<section id="games" class="page active">
+
+<div class="card hero">
+    <h1>Farm Stars</h1>
+    <p class="muted">Игры, ферма и развитие твоей базы.</p>
+
+    <div class="level">
+        <span>Уровень фермы</span>
+        <b id="homeLevel">1 / 100</b>
+    </div>
+
+    <div class="progress">
+        <div id="homeProgress" style="width:0%"></div>
+    </div>
+</div>
+
+<div class="card">
+<h2>🎮 Игры</h2>
+
+<div class="grid">
+
+<div class="game" onclick="showPage('lucky')">
+    <div class="game-icon">🎰</div>
+    <div class="game-title">Lucky Spin</div>
+    <div class="game-desc">50 ⭐ за один запуск</div>
+    <div class="arrow">›</div>
+</div>
+
+<div class="game" onclick="showPage('mines')">
+    <div class="game-icon">💣</div>
+    <div class="game-title">Mines</div>
+    <div class="game-desc">Открывай клетки</div>
+    <div class="arrow">›</div>
+</div>
+
+<div class="game" onclick="showPage('higher')">
+    <div class="game-icon">🔼</div>
+    <div class="game-title">Больше / меньше</div>
+    <div class="game-desc">Сравнивай числа</div>
+    <div class="arrow">›</div>
+</div>
+
+<div class="game" onclick="showPage('rocket')">
+    <div class="game-icon">🚀</div>
+    <div class="game-title">Rocket Crash</div>
+    <div class="game-desc">Следи за ракетой</div>
+    <div class="arrow">›</div>
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<h3>🎁 Ежедневная награда</h3>
+<p class="muted">Бесплатно один раз в 24 часа.</p>
+<button class="btn" onclick="showPage('daily')">
+Открыть
+</button>
+</div>
+
+</section>
+
+
+<!-- ================= LUCKY ================= -->
+
+<section id="lucky" class="page">
+
+<button class="back" onclick="showPage('games')">← Назад</button>
+
+<div class="card">
+
+<h2>🎰 Lucky Spin</h2>
+
+<p class="muted">
+Один запуск стоит <b>50 ⭐</b>.
+</p>
+
+<div class="wheel-box">
+    <div class="pointer">▼</div>
+    <div class="wheel" id="luckyWheel"></div>
+</div>
+
+<div class="prizes">
+    <div class="prize">⭐ 5</div>
+    <div class="prize">⭐ 10</div>
+    <div class="prize">⭐ 15</div>
+    <div class="prize">⭐ 20</div>
+    <div class="prize">⭐ 25</div>
+    <div class="prize">⭐ 30</div>
+    <div class="prize">⭐ 50</div>
+    <div class="prize">⭐ 100</div>
+</div>
+
+<button class="btn" onclick="luckySpin()">
+🎰 Крутить за 50 ⭐
+</button>
+
+<div class="big" id="luckyResult">—</div>
+
+<p class="muted" style="font-size:12px">
+Награды идут по игровой последовательности, поэтому
+результат не является ставкой на случайность.
+</p>
+
+</div>
+</section>
+
+
+<!-- ================= MINES ================= -->
+
+<section id="mines" class="page">
+
+<button class="back" onclick="showPage('games')">← Назад</button>
+
+<div class="card">
+
+<h2>💣 Mines</h2>
+
+<p class="muted">
+Бесплатная игра. Открывай клетки и ищи безопасные.
+</p>
+
+<button class="btn" onclick="newMines()">
+Новая игра
+</button>
+
+<div id="mineBoard" class="mines"></div>
+
+<div class="big" id="mineResult">—</div>
+
+</div>
+</section>
+
+
+<!-- ================= HIGHER ================= -->
+
+<section id="higher" class="page">
+
+<button class="back" onclick="showPage('games')">← Назад</button>
+
+<div class="card">
+
+<h2>🔼🔽 Больше или меньше</h2>
+
+<div class="big" id="higherNumber">
+50
+</div>
+
+<div class="history" id="numberHistory"></div>
+
+<button class="btn" onclick="higherLower('higher')">
+🔼 Следующее больше
+</button>
+
+<button class="btn secondary" onclick="higherLower('lower')">
+🔽 Следующее меньше
+</button>
+
+<div class="big" id="higherResult">—</div>
+
+</div>
+</section>
+
+
+<!-- ================= ROCKET ================= -->
+
+<section id="rocket" class="page">
+
+<button class="back" onclick="showPage('games')">← Назад</button>
+
+<div class="card">
+
+<h2>🚀 Rocket Crash</h2>
+
+<div class="rocket-box">
+    <div class="rocket" id="rocket">🚀</div>
+    <div class="multiplier" id="multiplier">1.00x</div>
+</div>
+
+<button class="btn" onclick="startRocket()">
+🚀 Запустить
+</button>
+
+<h3 style="margin-top:18px">
+Последние результаты
+</h3>
+
+<div class="history" id="rocketHistory"></div>
+
+</div>
+</section>
+
+
+<!-- ================= DAILY ================= -->
+
+<section id="daily" class="page">
+
+<button class="back" onclick="showPage('games')">← Назад</button>
+
+<div class="card">
+
+<h2>🎁 Ежедневная рулетка</h2>
+
+<p class="muted">
+Бесплатная награда каждые 24 часа.
+</p>
+
+<div class="wheel-box">
+    <div class="pointer">▼</div>
+    <div class="wheel" id="dailyWheel"></div>
+</div>
+
+<div class="prizes">
+    <div class="prize">⭐ 5</div>
+    <div class="prize">⭐ 10</div>
+    <div class="prize">⭐ 15</div>
+    <div class="prize">⭐ 25</div>
+    <div class="prize">⭐ 50</div>
+    <div class="prize">⭐ 100</div>
+    <div class="prize">🌾 25</div>
+    <div class="prize">🌾 50</div>
+</div>
+
+<button class="btn" onclick="dailySpin()">
+Получить бесплатную награду
+</button>
+
+<div class="big" id="dailyResult">—</div>
+
+</div>
+</section>
+
+
+<!-- ================= ФЕРМА ================= -->
+
+<section id="farm" class="page">
+
+<div class="card hero">
+
+<h2>🌾 Моя ферма</h2>
+
+<!-- Farm Coins видны ТОЛЬКО здесь -->
+<div class="farm-coins">
+    <div>🌾 Farm Coins</div>
+    <b id="coins">100</b>
+</div>
+
+<div class="level">
+    <span>Уровень</span>
+    <b id="farmLevel">1 / 100</b>
+</div>
+
+<div class="progress">
+    <div id="farmProgress" style="width:0%"></div>
+</div>
+
+</div>
+
+
+<div class="farm">
+
+<div class="farm-grid">
+
+<div class="farm-tile building">
+🏠
+<small>Дом</small>
+</div>
+
+<div class="farm-tile building">
+🏭
+<small>Фабрика</small>
+</div>
+
+<div class="farm-tile building">
+🐄
+<small>Ферма</small>
+</div>
+
+<div class="farm-tile" onclick="harvest(this)">
+🌽
+<small>Собрать</small>
+</div>
+
+<div class="farm-tile" onclick="harvest(this)">
+🌾
+<small>Собрать</small>
+</div>
+
+<div class="farm-tile" onclick="harvest(this)">
+🥕
+<small>Собрать</small>
+</div>
+
+<div class="farm-tile" onclick="harvest(this)">
+🍅
+<small>Собрать</small>
+</div>
+
+<div class="farm-tile" onclick="harvest(this)">
+🥔
+<small>Собрать</small>
+</div>
+
+<div class="farm-tile" onclick="harvest(this)">
+🌻
+<small>Собрать</small>
+</div>
+
+</div>
+</div>
+
+
+<div class="card">
+
+<h3>🏗 Улучшения</h3>
+
+<div class="upgrade">
+<div>
+<b>🏠 Дом</b>
+<div class="muted">
+Уровень <span id="house">1</span>
+</div>
+</div>
+
+<button onclick="upgradeHouse()">
+Улучшить
+</button>
+</div>
+
+
+<div class="upgrade">
+<div>
+<b>🌱 Поля</b>
+<div class="muted">
+Уровень <span id="fields">1</span>
+</div>
+</div>
+
+<button onclick="upgradeFields()">
+Улучшить
+</button>
+</div>
+
+
+<div class="upgrade">
+<div>
+<b>🏭 Фабрика</b>
+<div class="muted">
+Уровень <span id="factory">1</span>
+</div>
+</div>
+
+<button onclick="upgradeFactory()">
+Улучшить
+</button>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ================= ОБМЕН ================= -->
+
+<section id="exchange" class="page">
+
+<div class="card">
+
+<h2>🔄 Обмен</h2>
+
+<p class="muted">
+Обменивай ⭐ Farm Stars на 🌾 Farm Coins.
+</p>
+
+<p>
+Курс: <b>1 ⭐ = 10 🌾</b>
+</p>
+
+<input
+    class="input"
+    id="exchangeInput"
+    type="number"
+    min="1"
+    placeholder="Количество ⭐">
+
+<button class="btn" onclick="exchange()">
+Обменять
+</button>
+
+<p id="exchangeResult"></p>
+
+</div>
+
+</section>
+
+
+<!-- ================= TOP ================= -->
+
+<section id="top" class="page">
+
+<div class="card">
+
+<h2>🏆 Top 100</h2>
+
+<p class="muted">
+Рейтинг по уровню фермы.
+</p>
+
+<div id="ranking"></div>
+
+</div>
+
+</section>
+
+
+<!-- ================= PROFILE ================= -->
+
+<section id="profile" class="page">
+
+<div class="card profile">
+
+<div class="avatar">
+👨‍🌾
+</div>
+
+<h2>Игрок Farm Star</h2>
+
+<p class="muted">
+Твой профиль
+</p>
+
+</div>
+
+<div class="card">
+
+<div class="upgrade">
+<span>⭐ Farm Stars</span>
+<b id="profileStars">100</b>
+</div>
+
+<div class="upgrade">
+<span>🌾 Уровень фермы</span>
+<b id="profileLevel">1</b>
+</div>
+
+<div class="upgrade">
+<span>🌽 Собрано</span>
+<b id="harvestCount">0</b>
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+
+<!-- ================= NAV ================= -->
+
+<div class="bottom">
+<div class="navbar">
+
+<button class="nav active" onclick="showPage('games',this)">
+<span class="nav-icon">🎮</span>
+Игры
+</button>
+
+<button class="nav" onclick="showPage('farm',this)">
+<span class="nav-icon">🌾</span>
+Ферма
+</button>
+
+<button class="nav" onclick="showPage('exchange',this)">
+<span class="nav-icon">🔄</span>
+Обмен
+</button>
+
+<button class="nav" onclick="showPage('top',this)">
+<span class="nav-icon">🏆</span>
+Топ
+</button>
+
+<button class="nav" onclick="showPage('profile',this)">
+<span class="nav-icon">👤</span>
+Профиль
+</button>
+
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+</div>
+
+
+<script>
+
+const KEY="farmStars_new";
+
+let state=JSON.parse(localStorage.getItem(KEY))||{
+    stars:100,
+    coins:100,
+    level:1,
+    harvest:0,
+    house:1,
+    fields:1,
+    factory:1,
+    luckyIndex:0,
+    daily:0,
+    history:[50],
+    rocketHistory:[1.25,1.51,2.05,1.12,1.77]
+};
+
+function save(){
+    localStorage.setItem(KEY,JSON.stringify(state));
+    update();
+}
+
+function toast(text){
+    const el=document.getElementById("toast");
+
+    el.textContent=text;
+    el.style.display="block";
+
+    clearTimeout(window.toastTimer);
+
+    window.toastTimer=setTimeout(()=>{
+        el.style.display="none";
+    },1800);
+}
+
+function showPage(id,button){
+
+    document.querySelectorAll(".page")
+        .forEach(p=>p.classList.remove("active"));
+
+    const page=document.getElementById(id);
+
+    if(page) page.classList.add("active");
+
+    document.querySelectorAll(".nav")
+        .forEach(n=>n.classList.remove("active"));
+
+    if(button) button.classList.add("active");
+
+    window.scrollTo(0,0);
+}
+
+
+function update(){
+
+    document.getElementById("stars").textContent=state.stars;
+
+    document.getElementById("coins").textContent=state.coins;
+
+    document.getElementById("homeLevel").textContent=
+        state.level+" / 100";
+
+    document.getElementById("farmLevel").textContent=
+        state.level+" / 100";
+
+    document.getElementById("profileStars").textContent=
+        state.stars;
+
+    document.getElementById("profileLevel").textContent=
+        state.level;
+
+    document.getElementById("harvestCount").textContent=
+        state.harvest;
+
+    document.getElementById("house").textContent=
+        state.house;
+
+    document.getElementById("fields").textContent=
+        state.fields;
+
+    document.getElementById("factory").textContent=
+        state.factory;
+
+    const progress=
+        Math.min(100,(state.harvest%10)*10);
+
+    document.getElementById("homeProgress")
+        .style.width=progress+"%";
+
+    document.getElementById("farmProgress")
+        .style.width=progress+"%";
+
+    renderHistory();
+    renderRocketHistory();
+    renderRanking();
+}
+
+
+/* ================= LUCKY ================= */
+
+const luckyRewards=[
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    50,
+    100
+];
+
+function luckySpin(){
+
+    if(state.stars<50){
+
+        toast("Недостаточно ⭐");
+
+        return;
+    }
+
+    state.stars-=50;
+
+    /*
+       Последовательная награда.
+       Нет случайной ставки.
+    */
+
+    const reward=
+        luckyRewards[
+            state.luckyIndex % luckyRewards.length
+        ];
+
+    state.luckyIndex++;
+
+    const wheel=
+        document.getElementById("luckyWheel");
+
+    wheel.style.transform=
+        "rotate("+(1080+state.luckyIndex*45)+"deg)";
+
+    setTimeout(()=>{
+
+        state.stars+=reward;
+
+        document.getElementById("luckyResult")
+            .textContent="⭐ +"+reward;
+
+        save();
+
+    },1200);
+}
+
+
+/* ================= MINES ================= */
+
+let mines=[];
+
+function newMines(){
+
+    mines=Array(25).fill(false);
+
+    let placed=0;
+
+    while(placed<5){
+
+        const i=
+            Math.floor(Math.random()*25);
+
+        if(!mines[i]){
+
+            mines[i]=true;
+            placed++;
+        }
+    }
+
+    const board=
+        document.getElementById("mineBoard");
+
+    board.innerHTML="";
+
+    document.getElementById("mineResult")
+        .textContent="";
+
+    for(let i=0;i<25;i++){
+
+        const button=
+            document.createElement("button");
+
+        button.className="mine";
+        button.textContent="❔";
+
+        button.onclick=()=>{
+
+            if(button.classList.contains("open"))
+                return;
+
+            button.classList.add("open");
+
+            if(mines[i]){
+
+                button.textContent="💣";
+
+                document.getElementById("mineResult")
+                    .textContent="💣 Мина!";
+
+            }else{
+
+                button.textContent="💎";
+
+                document.getElementById("mineResult")
+                    .textContent="💎 Безопасно!";
+            }
+        };
+
+        board.appendChild(button);
+    }
+}
+
+
+/* ================= HIGHER ================= */
+
+function renderHistory(){
+
+    const box=
+        document.getElementById("numberHistory");
+
+    box.innerHTML="";
+
+    state.history.slice(-10).forEach(n=>{
+
+        const span=
+            document.createElement("span");
+
+        span.textContent=n;
+
+        box.appendChild(span);
+    });
+}
+
+function higherLower(type){
+
+    const old=
+        state.history[state.history.length-1]||50;
+
+    const next=
+        Math.floor(Math.random()*100)+1;
+
+    state.history.push(next);
+
+    state.history=
+        state.history.slice(-10);
+
+    document.getElementById("higherNumber")
+        .textContent=next;
+
+    let correct=false;
+
+    if(type==="higher"){
+        correct=next>old;
+    }else{
+        correct=next<old;
+    }
+
+    document.getElementById("higherResult")
+        .textContent=
+        correct ? "✅ Правильно!" : "❌ Неправильно";
+
+    save();
+}
+
+
+/* ================= ROCKET ================= */
+
+function renderRocketHistory(){
+
+    const box=
+        document.getElementById("rocketHistory");
+
+    box.innerHTML="";
+
+    state.rocketHistory
+        .slice(-10)
+        .reverse()
+        .forEach(n=>{
+
+            const span=
+                document.createElement("span");
+
+            span.textContent=
+                n.toFixed(2)+"x";
+
+            box.appendChild(span);
+        });
+}
+
+function startRocket(){
+
+    const multiplier=
+        document.getElementById("multiplier");
+
+    const rocket=
+        document.getElementById("rocket");
+
+    let value=1;
+
+    const finish=
+        1.2+Math.random()*6;
+
+    const timer=setInterval(()=>{
+
+        value+=0.05;
+
+        multiplier.textContent=
+            value.toFixed(2)+"x";
+
+        rocket.style.transform=
+            "translateY("+(-value*18)+"px)";
+
+        if(value>=finish){
+
+            clearInterval(timer);
+
+            multiplier.textContent=
+                finish.toFixed(2)+"x";
+
+            state.rocketHistory.push(finish);
+
+            state.rocketHistory=
+                state.rocketHistory.slice(-10);
+
+            save();
+
+            setTimeout(()=>{
+                rocket.style.transform="";
+            },700);
+        }
+
+    },80);
+}
+
+
+/* ================= DAILY ================= */
+
+function dailySpin(){
+
+    const now=Date.now();
+
+    if(now-state.daily<86400000){
+
+        const hours=
+            Math.ceil(
+                (86400000-(now-state.daily))
+                /3600000
+            );
+
+        document.getElementById("dailyResult")
+            .textContent=
+            "⏳ Ещё "+hours+" ч.";
+
+        return;
+    }
+
+    const rewards=[
+        ["stars",5],
+        ["stars",10],
+        ["stars",15],
+        ["stars",25],
+        ["stars",50],
+        ["stars",100],
+        ["coins",25],
+        ["coins",50]
+    ];
+
+    const reward=
+        rewards[
+            Math.floor(Math.random()*rewards.length)
+        ];
+
+    if(reward[0]==="stars"){
+
+        state.stars+=reward[1];
+
+        document.getElementById("dailyResult")
+            .textContent=
+            "⭐ +"+reward[1];
+
+    }else{
+
+        state.coins+=reward[1];
+
+        document.getElementById("dailyResult")
+            .textContent=
+            "🌾 +"+reward[1];
+    }
+
+    state.daily=now;
+
+    save();
+}
+
+
+/* ================= FARM ================= */
+
+function harvest(el){
+
+    state.harvest++;
+
+    const amount=
+        5+state.fields*2;
+
+    state.coins+=amount;
+
+    const crops=[
+        "🌽",
+        "🌾",
+        "🥕",
+        "🍅",
+        "🥔",
+        "🌻"
+    ];
+
+    el.textContent=
+        crops[Math.floor(Math.random()*crops.length)];
+
+    if(
+        state.harvest>=state.level*10
+        &&
+        state.level<100
+    ){
+        state.level++;
+        toast("🎉 Уровень фермы повышен!");
+    }else{
+        toast("🌾 +"+amount+" Farm Coins");
+    }
+
+    save();
+}
+
+function upgradeHouse(){
+
+    const cost=
+        state.house*100;
+
+    if(state.coins<cost){
+
+        toast("Не хватает Farm Coins");
+
+        return;
+    }
+
+    state.coins-=cost;
+    state.house++;
+
+    toast("🏠 Дом улучшен!");
+
+    save();
+}
+
+function upgradeFields(){
+
+    const cost=
+        state.fields*80;
+
+    if(state.coins<cost){
+
+        toast("Не хватает Farm Coins");
+
+        return;
+    }
+
+    state.coins-=cost;
+    state.fields++;
+
+    toast("🌱 Поля улучшены!");
+
+    save();
+}
+
+function upgradeFactory(){
+
+    const cost=
+        state.factory*150;
+
+    if(state.coins<cost){
+
+        toast("Не хватает Farm Coins");
+
+        return;
+    }
+
+    state.coins-=cost;
+    state.factory++;
+
+    toast("🏭 Фабрика улучшена!");
+
+    save();
+}
+
+
+/* ================= EXCHANGE ================= */
+
+function exchange(){
+
+    const input=
+        document.getElementById("exchangeInput");
+
+    const amount=
+        Number(input.value);
+
+    if(!amount||amount<1){
+
+        toast("Введите количество ⭐");
+
+        return;
+    }
+
+    if(state.stars<amount){
+
+        toast("Недостаточно ⭐");
+
+        return;
+    }
+
+    state.stars-=amount;
+    state.coins+=amount*10;
+
+    input.value="";
+
+    document.getElementById("exchangeResult")
+        .textContent=
+        "Обменено: ⭐ "+amount+
+        " → 🌾 "+(amount*10);
+
+    save();
+}
+
+
+/* ================= RANKING ================= */
+
+function renderRanking(){
+
+    const names=[
+        "FarmKing",
+        "GreenFarm",
+        "StarFarmer",
+        "CornLord",
+        "MegaFarm",
+        "FarmerPro",
+        "SunFarm",
+        "HappyFarm",
+        "FarmBoy",
+        "Player"
+    ];
+
+    const box=
+        document.getElementById("ranking");
+
+    box.innerHTML="";
+
+    for(let i=0;i<10;i++){
+
+        const level=
+            Math.max(
+                1,
+                Math.min(
+                    100,
+                    100-i*7
+                )
+            );
+
+        const row=
+            document.createElement("div");
+
+        row.className="rank";
+
+        row.innerHTML=
+            '<div class="rank-place">'+
+            (i+1)+
+            '</div>'+
+            '<div>'+names[i]+'</div>'+
+            '<div class="rank-level">'+
+            'Lv. '+level+
+            '</div>';
+
+        box.appendChild(row);
+    }
+}
+
+
+/* ================= START ================= */
+
+newMines();
+
+update();
+
+</script>
+
+</body>
+</html>
