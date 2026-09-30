@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Farm Stars</title>
+
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0;
+  background:#090909;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+button,input{font:inherit}
+button{cursor:pointer;border:0}
+.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:90px}
+
+.top{
+  padding:18px 16px 12px;
+  background:linear-gradient(180deg,#151515,#090909);
+  position:sticky;top:0;z-index:10;
+}
+.logo{font-size:25px;font-weight:900;color:#ff9d00}
+.subtitle{font-size:12px;color:#888;margin-top:2px}
+
+.page{display:none;padding:15px}
+.page.active{display:block}
+
+.card{
+  background:linear-gradient(145deg,#171717,#101010);
+  border:1px solid #292929;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:13px;
+  box-shadow:0 8px 30px #0005;
+}
+
+h2{margin:0 0 12px;font-size:22px}
+h3{margin:0 0 6px}
+
+.orange{color:#ff9d00}
+.gold{color:#ffd45a}
+
+.btn{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#ffb000,#ff7a00);
+  color:#111;
+  font-weight:900;
+  margin-top:10px;
+}
+.btn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.smallbtn{
+  padding:9px 12px;
+  border-radius:10px;
+  background:#272727;
+  color:white;
+  font-weight:700;
+}
+
+.balance{
+  font-size:31px;
+  font-weight:900;
+  color:#ffd45a;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.stat{
+  background:#202020;
+  padding:12px;
+  border-radius:13px;
+}
+.stat b{display:block;font-size:20px}
+
+.progress{
+  height:9px;
+  background:#292929;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:8px;
+}
+.progress div{
+  height:100%;
+  background:linear-gradient(90deg,#ff7a00,#ffd45a);
+}
+
+.nav{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(520px,100%);
+  background:#111;
+  border-top:1px solid #292929;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+  z-index:20;
+}
+.nav button{
+  background:none;
+  color:#777;
+  font-size:11px;
+  padding:5px 0;
+}
+.nav button.active{color:#ff9d00}
+.nav span{display:block;font-size:20px;margin-bottom:2px}
+
+/* GAMES */
+.gamegrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.game{
+  padding:15px;
+  background:#191919;
+  border:1px solid #292929;
+  border-radius:16px;
+}
+.game .emoji{font-size:32px}
+.game b{display:block;margin-top:7px}
+.game small{color:#888}
+
+/* WHEEL */
+.wheelbox{text-align:center}
+
+.wheel-wrap{
+  position:relative;
+  width:310px;
+  height:310px;
+  margin:18px auto;
+}
+
+.pointer{
+  position:absolute;
+  top:-7px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:5;
+  width:0;
+  height:0;
+  border-left:17px solid transparent;
+  border-right:17px solid transparent;
+  border-top:34px solid #fff;
+  filter:drop-shadow(0 2px 4px #000);
+}
+
+.wheel{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  border:8px solid #2b2b2b;
+  position:relative;
+  overflow:hidden;
+  transition:transform 5s cubic-bezier(.08,.7,.1,1);
+  background:
+    conic-gradient(
+      #ff7a00 0deg 45deg,
+      #202020 45deg 90deg,
+      #ffb000 90deg 135deg,
+      #252525 135deg 180deg,
+      #ff8c00 180deg 225deg,
+      #292929 225deg 270deg,
+      #ffb000 270deg 315deg,
+      #222 315deg 360deg
+    );
+  box-shadow:0 0 35px #ff9d0033;
+}
+
+.sector{
+  position:absolute;
+  width:50%;
+  height:50%;
+  left:25%;
+  top:25%;
+  transform-origin:50% 100%;
+  text-align:center;
+  font-weight:900;
+  font-size:14px;
+  color:white;
+  text-shadow:0 2px 3px #000;
+}
+
+.s1{transform:rotate(22.5deg) translateY(-100px)}
+.s2{transform:rotate(67.5deg) translateY(-100px)}
+.s3{transform:rotate(112.5deg) translateY(-100px)}
+.s4{transform:rotate(157.5deg) translateY(-100px)}
+.s5{transform:rotate(202.5deg) translateY(-100px)}
+.s6{transform:rotate(247.5deg) translateY(-100px)}
+.s7{transform:rotate(292.5deg) translateY(-100px)}
+.s8{transform:rotate(337.5deg) translateY(-100px)}
+
+.wheel-center{
+  position:absolute;
+  width:64px;height:64px;
+  background:#111;
+  border:5px solid #ffb000;
+  border-radius:50%;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  z-index:3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+}
+
+/* HOUSE */
+.house{
+  min-height:210px;
+  border-radius:18px;
+  background:
+    linear-gradient(#202020 0 58%,#18240f 58%);
+  position:relative;
+  overflow:hidden;
+  margin-bottom:13px;
+}
+.sun{position:absolute;right:25px;top:20px;font-size:30px}
+.cloud{position:absolute;left:25px;top:35px;font-size:25px}
+.house-body{
+  position:absolute;
+  bottom:25px;
+  left:50%;
+  transform:translateX(-50%);
+  width:145px;
+  height:105px;
+  background:#8d5528;
+  border:4px solid #5a351d;
+}
+.roof{
+  position:absolute;
+  top:-65px;
+  left:-18px;
+  width:170px;
+  height:90px;
+  background:#5b2018;
+  transform:skewY(-30deg);
+  border:4px solid #32120f;
+}
+.door{
+  position:absolute;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:32px;height:58px;
+  background:#321d10;
+}
+.window{
+  position:absolute;
+  width:27px;height:27px;
+  background:#ffd45a;
+  border:3px solid #422818;
+  top:32px;
+}
+.window.left{left:15px}
+.window.right{right:15px}
+
+.farmfield{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.crop{
+  background:#18280e;
+  border:1px solid #31551a;
+  border-radius:10px;
+  padding:12px 4px;
+  text-align:center;
+  font-size:23px;
+}
+.crop small{display:block;font-size:9px;color:#aaa}
+
+/* SHOP */
+.shopgrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.shopitem{
+  background:#1a1a1a;
+  border:1px solid #303030;
+  border-radius:16px;
+  padding:15px;
+  text-align:center;
+}
+.shopitem .stars{font-size:27px}
+.shopitem strong{font-size:19px;display:block;margin:6px}
+.shopitem button{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  background:#ff9d00;
+  font-weight:900;
+}
+.custom{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+.custom input{
+  flex:1;
+  min-width:0;
+  background:#202020;
+  color:white;
+  border:1px solid #333;
+  border-radius:10px;
+  padding:12px;
+}
+
+/* MINI GAMES */
+.choice{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.choice button{
+  padding:15px;
+  border-radius:13px;
+  background:#262626;
+  color:white;
+  font-weight:900;
+}
+.number{
+  font-size:50px;
+  font-weight:900;
+  text-align:center;
+  color:#ffb000;
+  padding:15px;
+}
+.memory{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+.mem{
+  aspect-ratio:1;
+  border-radius:10px;
+  background:#272727;
+  font-size:25px;
+}
+.mem.open{background:#ff9d00}
+.chests{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.chest{
+  background:#272727;
+  border-radius:14px;
+  padding:20px 5px;
+  font-size:40px;
+  text-align:center;
+}
+
+/* PROFILE */
+.profile-avatar{
+  width:75px;height:75px;
+  border-radius:50%;
+  background:#ff9d00;
+  color:#111;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  font-weight:900;
+  margin:auto;
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:90px;
+  transform:translateX(-50%) translateY(20px);
+  background:#222;
+  border:1px solid #444;
+  padding:12px 18px;
+  border-radius:12px;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  z-index:50;
+  text-align:center;
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="top">
+  <div class="logo">⭐ FARM STARS</div>
+  <div class="subtitle" id="hello">Добро пожаловать, фермер!</div>
+</header>
+
+<!-- GAMES -->
+<section id="games" class="page active">
+  <h2>🎮 Игры</h2>
+
+  <div class="gamegrid">
+    <div class="game" onclick="openGame('wheel')">
+      <div class="emoji">🎡</div>
+      <b>Колесо удачи</b>
+      <small>Бесплатный спин</small>
+    </div>
+
+    <div class="game" onclick="openGame('higher')">
+      <div class="emoji">⬆️</div>
+      <b>Выше или ниже</b>
+      <small>Угадай число</small>
+    </div>
+
+    <div class="game" onclick="openGame('guess')">
+      <div class="emoji">🔢</div>
+      <b>Угадай число</b>
+      <small>3 попытки</small>
+    </div>
+
+    <div class="game" onclick="openGame('memory')">
+      <div class="emoji">🧠</div>
+      <b>Memory</b>
+      <small>Найди пары</small>
+    </div>
+
+    <div class="game" onclick="openGame('reaction')">
+      <div class="emoji">⚡</div>
+      <b>Reaction Rush</b>
+      <small>Твоя скорость</small>
+    </div>
+
+    <div class="game" onclick="openGame('chest')">
+      <div class="emoji">🎁</div>
+      <b>Lucky Chest</b>
+      <small>Выбери сундук</small>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:15px">
+    <h3>⭐ Daily Star</h3>
+    <p style="color:#999">Получай бесплатную награду каждый день.</p>
+    <button class="btn" onclick="dailyStar()" id="dailyBtn">Забрать ⭐</button>
+  </div>
+</section>
+
+<!-- WHEEL -->
+<section id="wheel" class="page">
+  <h2>🎡 Колесо удачи</h2>
+
+  <div class="card wheelbox">
+    <p style="color:#999">Бесплатное вращение раз в 24 часа</p>
+
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+
+      <div class="wheel" id="wheelEl">
+        <div class="sector s1">5 ⭐</div>
+        <div class="sector s2">10 ⭐</div>
+        <div class="sector s3">25 ⭐</div>
+        <div class="sector s4">50 ⭐</div>
+        <div class="sector s5">75 ⭐</div>
+        <div class="sector s6">100 ⭐</div>
+        <div class="sector s7">25 ⭐</div>
+        <div class="sector s8">10 ⭐</div>
+        <div class="wheel-center">⭐</div>
+      </div>
+    </div>
+
+    <h3 id="wheelResult">Выбери «Крутить»</h3>
+
+    <button class="btn" id="spinBtn" onclick="spinWheel()">
+      🎡 КРУТИТЬ
+    </button>
+  </div>
+
+  <button class="smallbtn" onclick="showPage('games')">← Игры</button>
+</section>
+
+<!-- HIGHER -->
+<section id="higher" class="page">
+  <h2>⬆️ Выше или ниже</h2>
+
+  <div class="card">
+    <p style="color:#999">Появится число. Выбери, будет следующее выше или ниже. Ставок нет.</p>
+
+    <div class="number" id="higherNumber">50</div>
+
+    <div class="choice">
+      <button onclick="higherGame('higher')">⬆️ ВЫШЕ</button>
+      <button onclick="higherGame('lower')">⬇️ НИЖЕ</button>
+    </div>
+
+    <p id="higherResult"></p>
+  </div>
+
+  <button class="smallbtn" onclick="showPage('games')">← Игры</button>
+</section>
+
+<!-- GUESS -->
+<section id="guess" class="page">
+  <h2>🔢 Угадай число</h2>
+
+  <div class="card">
+    <p>Я загадал число от <b>1 до 10</b>.</p>
+
+    <input id="guessInput"
+      type="number"
+      min="1"
+      max="10"
+      placeholder="Твоё число"
+      style="width:100%;padding:13px;background:#202020;color:white;border:1px solid #333;border-radius:10px">
+
+    <button class="btn" onclick="guessNumber()">Угадать</button>
+    <p id="guessResult"></p>
+  </div>
+
+  <button class="smallbtn" onclick="showPage('games')">← Игры</button>
+</section>
+
+<!-- MEMORY -->
+<section id="memory" class="page">
+  <h2>🧠 Memory</h2>
+
+  <div class="card">
+    <p style="color:#999">Найди одинаковые пары.</p>
+    <div class="memory" id="memoryBoard"></div>
+    <p id="memoryResult"></p>
+  </div>
+
+  <button class="smallbtn" onclick="startMemory()">🔄 Новая игра</button>
+  <button class="smallbtn" onclick="showPage('games')">← Игры</button>
+</section>
+
+<!-- REACTION -->
+<section id="reaction" class="page">
+  <h2>⚡ Reaction Rush</h2>
+
+  <div class="card" style="text-align:center">
+    <p id="reactionText">Нажми START и жди сигнала.</p>
+    <button class="btn" id="reactionBtn" onclick="reactionStart()">START</button>
+  </div>
+
+  <button class="smallbtn" onclick="showPage('games')">← Игры</button>
+</section>
+
+<!-- CHEST -->
+<section id="chest" class="page">
+  <h2>🎁 Lucky Chest</h2>
+
+  <div class="card">
+    <p style="color:#999">Один сундук содержит большую награду.</p>
+
+    <div class="chests">
+      <button class="chest" onclick="openChest(0)">🎁</button>
+      <button class="chest" onclick="openChest(1)">🎁</button>
+      <button class="chest" onclick="openChest(2)">🎁</button>
+    </div>
+
+    <p id="chestResult"></p>
+  </div>
+
+  <button class="smallbtn" onclick="showPage('games')">← Игры</button>
+</section>
+
+<!-- FARM -->
+<section id="farm" class="page">
+  <h2>🌾 Моя ферма</h2>
+
+  <div class="card">
+    <div class="balance">⭐ <span id="balance">50</span></div>
+    <div style="color:#999">Farm Stars</div>
+
+    <div style="margin-top:12px">
+      Уровень фермы: <b id="level">1</b> / 100
+    </div>
+
+    <div class="progress">
+      <div id="xpbar" style="width:0%"></div>
+    </div>
+
+    <div style="font-size:12px;color:#777;margin-top:4px">
+      XP: <span id="xp">0</span> / 100
+    </div>
+  </div>
+
+  <div class="house">
+    <div class="sun">☀️</div>
+    <div class="cloud">☁️</div>
+
+    <div class="house-body">
+      <div class="roof"></div>
+      <div class="window left"></div>
+      <div class="window right"></div>
+      <div class="door"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🏠 Дом — уровень <span id="houseLevel">1</span></h3>
+    <p style="color:#999">
+      Улучшай дом и открывай новые возможности фермы.
+    </p>
+
+    <div class="stats">
+      <div class="stat">
+        🏠 Дом
+        <b id="houseStat">1</b>
+      </div>
+      <div class="stat">
+        🌾 Поле
+        <b id="fieldStat">1</b>
+      </div>
+      <div class="stat">
+        🐄 Животные
+        <b id="animalStat">0</b>
+      </div>
+      <div class="stat">
+        ✨ Декор
+        <b id="decorStat">0</b>
+      </div>
+    </div>
+
+    <button class="btn" onclick="upgradeHouse()">
+      🏠 Улучшить дом — <span id="houseCost">50</span> ⭐
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>🌱 Поле</h3>
+
+    <div class="farmfield">
+      <div class="crop">🌱<small>Пшеница</small></div>
+      <div class="crop">🌽<small>Кукуруза</small></div>
+      <div class="crop">🥕<small>Морковь</small></div>
+      <div class="crop">🍓<small>Ягоды</small></div>
+    </div>
+
+    <button class="btn" onclick="harvest()">
+      🌾 Собрать урожай
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>🐄 Животные</h3>
+    <p>Животные: <b id="animalsText">0</b></p>
+
+    <button class="btn" onclick="buyAnimal()">
+      🐄 Купить животное — 100 ⭐
+    </button>
+  </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop" class="page">
+  <h2>🛒 Магазин</h2>
+
+  <div class="card">
+    <h3>⭐ Farm Stars</h3>
+    <p style="color:#999">
+      Курс обмена: <b class="gold">1 Telegram Star = 1 Farm Star</b>
+    </p>
+
+    <div class="shopgrid">
+
+      <div class="shopitem">
+        <div class="stars">⭐</div>
+        <strong>50 ⭐</strong>
+        <small>→ 50 Farm Stars</small>
+        <button onclick="buyStars(50)">Купить</button>
+      </div>
+
+      <div class="shopitem">
+        <div class="stars">⭐</div>
+        <strong>100 ⭐</strong>
+        <small>→ 100 Farm Stars</small>
+        <button onclick="buyStars(100)">Купить</button>
+      </div>
+
+      <div class="shopitem">
+        <div class="stars">⭐</div>
+        <strong>250 ⭐</strong>
+        <small>→ 250 Farm Stars</small>
+        <button onclick="buyStars(250)">Купить</button>
+      </div>
+
+      <div class="shopitem">
+        <div class="stars">⭐</div>
+        <strong>500 ⭐</strong>
+        <small>→ 500 Farm Stars</small>
+        <button onclick="buyStars(500)">Купить</button>
+      </div>
+
+      <div class="shopitem">
+        <div class="stars">⭐</div>
+        <strong>1000 ⭐</strong>
+        <small>→ 1000 Farm Stars</small>
+        <button onclick="buyStars(1000)">Купить</button>
+      </div>
+
+      <div class="shopitem">
+        <div class="stars">✨</div>
+        <strong>Своя сумма</strong>
+        <small>1:1</small>
+        <div class="custom">
+          <input id="customAmount" type="number" min="1" placeholder="Stars">
+        </div>
+        <button onclick="buyCustom()">Купить</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🔒 Безопасная оплата</h3>
+    <p style="color:#999">
+      Реальная оплата Telegram Stars должна подтверждаться Telegram
+      и сервером. Баланс не должен увеличиваться только от нажатия кнопки.
+    </p>
+  </div>
+</section>
+
+<!-- PROFILE -->
+<section id="profile" class="page">
+  <h2>👤 Профиль</h2>
+
+  <div class="card" style="text-align:center">
+    <div class="profile-avatar" id="avatar">F</div>
+
+    <h3 id="profileName" style="margin-top:10px">Farmer</h3>
+
+    <p style="color:#999">
+      Уровень фермы: <b id="profileLevel">1</b>
+    </p>
+
+    <div class="balance">
+      ⭐ <span id="profileBalance">50</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📊 Статистика</h3>
+
+    <div class="stats">
+      <div class="stat">🌾 Урожай<b id="harvestCount">0</b></div>
+      <div class="stat">🎮 Игр<b id="gamesPlayed">0</b></div>
+      <div class="stat">🏠 Дом<b id="profileHouse">1</b></div>
+      <div class="stat">🐄 Животные<b id="profileAnimals">0</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🏆 Рейтинг</h3>
+    <p>🥇 Top Farmer — Level 100</p>
+    <p>🥈 Star Farmer — Level 85</p>
+    <p>🥉 Farm Master — Level 72</p>
+    <p>⭐ Ты — Level <b id="rankLevel">1</b></p>
+  </div>
+</section>
+
+</div>
+
+<nav class="nav">
+  <button class="active" onclick="showPage('games',this)">
+    <span>🎮</span>Игры
+  </button>
+  <button onclick="showPage('farm',this)">
+    <span>🌾</span>Ферма
+  </button>
+  <button onclick="showPage('shop',this)">
+    <span>🛒</span>Магазин
+  </button>
+  <button onclick="showPage('profile',this)">
+    <span>👤</span>Профиль
+  </button>
+  <button onclick="showPage('games',this)">
+    <span>⭐</span>Главная
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================
+   TELEGRAM
+========================= */
+
+const tg = window.Telegram?.WebApp;
+
+if(tg){
+  tg.ready();
+  tg.expand();
+}
+
+/* =========================
+   DATA
+========================= */
+
+let data = JSON.parse(localStorage.getItem("farmStarsData") || "null") || {
+  balance:50,
+  level:1,
+  xp:0,
+  house:1,
+  field:1,
+  animals:0,
+  decor:0,
+  harvests:0,
+  games:0,
+  daily:0,
+  spin:0
+};
+
+function save(){
+  localStorage.setItem("farmStarsData",JSON.stringify(data));
+  updateUI();
+}
+
+function toast(text){
+  const el=document.getElementById("toast");
+  el.textContent=text;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),2300);
+}
+
+function reward(amount){
+  data.balance += amount;
+  data.games++;
+  addXP(10);
+  save();
+  toast("🎉 +"+amount+" Farm Stars!");
+}
+
+function addXP(amount){
+  data.xp += amount;
+
+  while(data.xp >= 100 && data.level < 100){
+    data.xp -= 100;
+    data.level++;
+    toast("🚜 Новый уровень фермы: "+data.level+"!");
+  }
+
+  if(data.level >= 100){
+    data.level=100;
+    data.xp=100;
+  }
+}
+
+/* =========================
+   NAVIGATION
+========================= */
+
+function showPage(id,btn){
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  const page=document.getElementById(id);
+  if(page) page.classList.add("active");
+
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+
+  window.scrollTo(0,0);
+
+  if(id==="memory") startMemory();
+}
+
+function openGame(id){
+  showPage(id);
+
+  if(id==="higher"){
+    higherCurrent=50;
+    document.getElementById("higherNumber").textContent=50;
+    document.getElementById("higherResult").textContent="";
+  }
+
+  if(id==="guess") newGuess();
+  if(id==="chest") newChest();
+}
+
+/* =========================
+   USER
+========================= */
+
+function loadUser(){
+  let name="Farmer";
+
+  if(tg && tg.initDataUnsafe?.user){
+    name=tg.initDataUnsafe.user.first_name || "Farmer";
+  }
+
+  document.getElementById("hello").textContent="Привет, "+name+"! 👋";
+  document.getElementById("profileName").textContent=name;
+  document.getElementById("avatar").textContent=name.charAt(0).toUpperCase();
+}
+
+/* =========================
+   DAILY STAR
+========================= */
+
+function dailyStar(){
+  const now=Date.now();
+
+  if(now-data.daily < 86400000){
+    const left=86400000-(now-data.daily);
+    const hours=Math.ceil(left/3600000);
+    toast("⏳ Следующая награда через "+hours+" ч.");
+    return;
+  }
+
+  data.daily=now;
+  data.balance+=10;
+  addXP(10);
+  save();
+
+  toast("⭐ Daily Star: +10!");
+}
+
+/* =========================
+   WHEEL
+========================= */
+
+let spinning=false;
+
+const prizes=[5,10,25,50,75,100,25,10];
+
+function spinWheel(){
+
+  if(spinning) return;
+
+  const now=Date.now();
+
+  if(now-data.spin < 86400000){
+    const left=86400000-(now-data.spin);
+    const hours=Math.ceil(left/3600000);
+
+    toast("⏳ Колесо будет доступно через "+hours+" ч.");
+    return;
+  }
+
+  spinning=true;
+
+  const btn=document.getElementById("spinBtn");
+  const wheel=document.getElementById("wheelEl");
+  const result=document.getElementById("wheelResult");
+
+  btn.disabled=true;
+  btn.textContent="⏳ ВРАЩАЕТСЯ...";
+  result.textContent="Колесо вращается...";
+
+  const index=Math.floor(Math.random()*prizes.length);
+  const prize=prizes[index];
+
+  /*
+    Каждый сектор занимает 45°.
+    Добавляем несколько полных оборотов,
+    чтобы колесо красиво замедлялось.
+  */
+
+  const sectorCenter=index*45+22.5;
+  const target=360*6+(360-sectorCenter);
+
+  wheel.style.transform="rotate("+target+"deg)";
+
+  setTimeout(()=>{
+
+    data.spin=Date.now();
+    data.balance+=prize;
+    addXP(15);
+    data.games++;
+
+    result.innerHTML="🎉 Выпало <span class='gold'>"+prize+" ⭐</span>!";
+    btn.textContent="🎡 СПИНИТЬ";
+
+    spinning=false;
+    btn.disabled=true;
+
+    save();
+
+  },5200);
+}
+
+/* =========================
+   HIGHER / LOWER
+========================= */
+
+let higherCurrent=50;
+
+function higherGame(choice){
+
+  const next=Math.floor(Math.random()*100)+1;
+
+  let correct=false;
+
+  if(choice==="higher" && next>higherCurrent) correct=true;
+  if(choice==="lower" && next<higherCurrent) correct=true;
+
+  higherCurrent=next;
+  document.getElementById("higherNumber").textContent=next;
+
+  if(correct){
+    reward(5);
+    document.getElementById("higherResult").innerHTML=
+      "🎉 Правильно! <b class='gold'>+5 ⭐</b>";
+  }else{
+    data.games++;
+    addXP(3);
+    save();
+
+    document.getElementById("higherResult").textContent=
+      "🙂 Не угадал. Попробуй ещё!";
+  }
+}
+
+/* =========================
+   GUESS NUMBER
+========================= */
+
+let secretNumber=0;
+let guesses=0;
+
+function newGuess(){
+  secretNumber=Math.floor(Math.random()*10)+1;
+  guesses=0;
+
+  document.getElementById("guessInput").value="";
+  document.getElementById("guessResult").textContent="";
+}
+
+function guessNumber(){
+
+  const value=Number(document.getElementById("guessInput").value);
+
+  if(!value || value<1 || value>10){
+    toast("Введите число от 1 до 10");
+    return;
+  }
+
+  guesses++;
+
+  if(value===secretNumber){
+    reward(10);
+
+    document.getElementById("guessResult").innerHTML=
+      "🎉 Угадал! <b class='gold
