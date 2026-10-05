@@ -1,2 +1,23 @@
-# farm-star-telegram
-Telegram Mini App - Farm Star game
+# Farm Stars Mini App
+
+Файлы: `bot.py` (бэкенд + бот, только stdlib), `index.html` (Mini App, рядом с bot.py), `requirements.txt` (пустой).
+
+## Переменные окружения
+- `BOT_TOKEN` — токен от @BotFather (обязателен)
+- `WEB_APP_URL` — публичный HTTPS-адрес сервиса
+- `DB_PATH` — SQLite, по умолчанию `/data/farmstar.db` (нужен ПОСТОЯННЫЙ диск, иначе балансы пропадут при редеплое)
+- `ADMIN_IDS` — ваши Telegram ID через запятую (доступ к админ-командам)
+- `SUPPORT_CONTACT` — контакт поддержки (показывается в /paysupport)
+- `MAX_STAKE` — максимальная ставка (по умолчанию 1000)
+
+Запуск: `python bot.py`. Проверка: `GET /health`. Тесты: `python test_bot.py`, `python ui_test.py` (нужен playwright).
+
+## Команды бота
+Игрокам: `/start`, `/paysupport` (обязательна для ботов с платежами), `/support`, `/terms`.
+Админу: `/stats`, `/payments <user_id>`, `/ledger <user_id>` (журнал всех движений звёзд), `/refund <payment_id>` (возврат Stars через Telegram и списание звёзд).
+
+## Бэкапы
+Каждые 6 часов копия базы в `<папка DB_PATH>/backups/` (хранятся последние 5). Для надёжности копируйте их и за пределы сервера.
+
+## Перед публичным запуском с платежами
+Юридическая проверка (азартные механики за Stars), ручной прогон в настоящем Telegram на тестовом боте, пользовательское соглашение и политика конфиденциальности.
