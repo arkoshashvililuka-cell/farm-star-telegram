@@ -1,4 +1,4 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script src="https://telegram.org/js/telegram-web-app.js"></script><title>ботру</title><style>:root{
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script src="https://telegram.org/js/telegram-web-app.js"></script><title>Farm Star</title><style>:root{
  --bg:#090909;--panel:#111111;--card:#171717;--card2:#1d1d1d;--line:#303030;
  --txt:#fff;--muted:#a7a7b0;--gold:#FFD700;--orange:#FFB800;--pink:#FF3D71;--purple:#8B5CF6;
  --green:#31d38a;--danger:#ff3d71;
@@ -33,39 +33,497 @@ footer{position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(12,12,1
 .bonus-card{border-color:rgba(255,184,0,.28)!important;background:linear-gradient(100deg,rgba(255,184,0,.13),rgba(255,61,113,.08))!important}.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:rgba(28,28,28,.96);border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 35px rgba(0,0,0,.45);color:#fff;padding:10px 13px;border-radius:11px;display:none;z-index:60;white-space:nowrap}.refbox{word-break:break-all;background:#151515;border:1px solid rgba(255,255,255,.08);padding:10px;border-radius:10px;font-size:12px}.level-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.badge{background:#222;border:1px solid rgba(255,255,255,.07);padding:7px 9px;border-radius:9px;font-size:12px}
 .profile-avatar{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid #FFB800;box-shadow:0 0 0 4px rgba(139,92,246,.15),0 0 25px rgba(255,184,0,.18);background:#222}.profile-head{display:flex;align-items:center;gap:14px}.profile-head .profile-info{flex:1;min-width:0}.profile-head .profile-info h3{margin:0 0 5px}.profile-head .profile-info p{margin:0}.shop-accent{border-color:rgba(255,184,0,.25);background:linear-gradient(145deg,rgba(255,184,0,.09),rgba(139,92,246,.07),#171717)}
 @media(max-width:380px){main{padding:11px}.card{padding:13px}.game-card{padding:11px}.brand{font-size:19px}.farm-scene{min-height:285px}}
-</style></head><body><div class="app"><header><div class="top"><div class="brand">🌟 ботру</div><div class="balances"><div class="pill">⭐ <span id="stars">10</span></div></div></div></header><main>
+.rstatus{position:absolute;top:12px;left:0;right:0;text-align:center;font-weight:800;font-size:15px;letter-spacing:.2px}
+.rocket .r{transition:none;transform:translate(-50%,-50%) rotate(-38deg);left:12%;top:78%}
+.rocket.crashed .mult{color:#ff4d6d}.rocket.flying .mult{color:#ffd23f}
+.num.good{color:#4ade80;border-color:rgba(74,222,128,.35)}.num.bad{color:#ff6b81;border-color:rgba(255,107,129,.3)}
+.num.up{color:#4ade80}.num.down{color:#ff6b81}
+.bet{font-size:12px;padding:5px 9px;border-radius:10px;background:#141414;border:1px solid rgba(255,255,255,.08)}
+.bet.won{color:#4ade80;border-color:rgba(74,222,128,.35)}.bet.lost{color:#ff6b81;opacity:.8}.bet.me{outline:1px solid #ffd23f}
+.hstatus{text-align:center;font-weight:800;margin:10px 0 2px;min-height:22px}
+.hl button.sel{outline:2px solid #ffd23f}
+.number.drawing{animation:pulse .25s infinite alternate}.number.win{color:#4ade80}.number.lose{color:#ff6b81}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.05)}}
+.up{background:#141414;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin:10px 0}.uph{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.ul{opacity:.7;font-size:13px}.ut{font-size:13px;opacity:.92;margin:8px 0}.ue{font-size:18px}
+</style></head><body><div class="app"><header><div class="top"><div class="brand">🌟 Farm Star</div><div class="balances"><div class="pill">⭐ <span id="stars">10</span></div></div></div></header><main>
 <section id="home" class="page active"><h2>Игры</h2><div class="card"><button class="game-card" data-page="roulette"><span class="game-icon">🎰</span><span><b>Рулетка</b><small>Ставка от 10 ⭐</small></span></button><button class="game-card" data-page="mines"><span class="game-icon">💣</span><span><b>Mines</b><small>5×5 · мины · множитель</small></span></button><button class="game-card" data-page="lucky"><span class="game-icon">🎡</span><span><b>Lucky Spin</b><small>Платная рулетка · до 10×</small></span></button><button class="game-card" data-page="higher"><span class="game-icon">🔼</span><span><b>Больше / Меньше</b><small>Последние 10 чисел</small></span></button><button class="game-card" data-page="rocket"><span class="game-icon">🚀</span><span><b>Rocket Crash</b><small>До 100×</small></span></button><button class="game-card bonus-card" data-page="daily"><span class="game-icon">🎁</span><span><b>Бонусная рулетка</b><small>Бесплатно 1 раз в 24 часа</small></span></button></div><div class="card"><h3>🌾 Ферма</h3><p class="muted">Пшеница и энергия видны только внутри фермы.</p><button class="wide" data-page="farm">Открыть ферму</button></div></section>
-<section id="farm" class="page"><h2>🌾 Ферма</h2><div class="card"><div class="farm-scene" id="farmScene"><div class="sun">☀️</div><div class="cloud c1">☁️</div><div class="cloud c2">☁️</div><div class="house" id="houseArt">🏡</div><div id="houseDetail" style="position:absolute;left:50%;bottom:57px;transform:translateX(-50%);z-index:6;font-size:12px;font-weight:900;letter-spacing:1px;text-shadow:0 2px 5px #000;white-space:nowrap"></div><div class="tree t1">🌳</div><div class="tree t2">🌳</div><div class="barn" id="barnArt"></div><div class="tractor" id="tractorArt"></div><div class="field-art" id="fieldArt"></div></div><h3 style="margin:12px 0 7px">Уровень фермы <span id="level">1</span>/100</h3><div class="progress"><i id="levelBar"></i></div><div class="level-badges" id="visualBadges"></div></div><div class="card"><div class="grid2"><div class="stat">🌾 Пшеница<br><b id="wheat">0</b></div><div class="stat">⚡ Энергия<br><b id="energy">10</b>/<span id="energyMax">10</span></div></div><p class="muted" id="farmTimer"></p><div class="grid2"><button id="plantBtn">🌱 Посадить</button><button id="harvestBtn">🌾 Собрать</button></div></div><div class="card"><h3>🏡 Улучшение фермы</h3><p id="upgradeInfo" class="muted"></p><button class="wide" id="upgradeBtn">⬆️ Улучшить за 🌾</button></div></section>
+<section id="farm" class="page"><h2>🌾 Ферма</h2><div class="card"><div id="farm3dWrap" style="position:relative;border-radius:18px;overflow:hidden;background:#bfe4fb;margin-bottom:4px"><canvas id="farm3d" style="display:block;width:100%;height:360px;touch-action:pan-y"></canvas><div style="position:absolute;left:10px;bottom:8px;font-size:11px;opacity:.75;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none">👆 Потяните, чтобы повернуть ферму</div></div><h3 style="margin:12px 0 7px">Уровень фермы <span id="level">1</span>/100</h3><div class="progress"><i id="levelBar"></i></div><div class="level-badges" id="visualBadges"></div></div><div class="card"><div class="grid2"><div class="stat">🌾 Пшеница<br><b id="wheat">0</b></div><div class="stat">⚡ Энергия<br><b id="energy">10</b>/<span id="energyMax">10</span></div></div><p class="muted" id="farmStats" style="margin:10px 0 2px"></p><p class="muted" id="farmTimer"></p><div class="grid2"><button id="plantBtn">🌱 Посадить</button><button id="harvestBtn">🌾 Собрать</button></div></div><div class="card"><h3>⬆️ Улучшения фермы</h3><p class="muted" style="margin:0 0 4px">Каждое улучшение доходит до 100 уровня</p><div id="upgrades"></div></div></section>
 <section id="roulette" class="page"><h2>🎰 Рулетка</h2><div class="card"><div class="stat">Баланс: <b id="rouletteBalance">10</b> ⭐</div><div style="margin-top:10px" class="wheel" id="paidWheel"><div class="labels"><span class="l1">0×</span><span class="l2">0.5×</span><span class="l3">1.5×</span><span class="l4">2.5×</span><span class="l5">5×</span><span class="l6">10×</span><span class="l7">0.5×</span><span class="l8">1.5×</span></div></div><div class="stat"><div class="muted">Ставка</div><div style="display:grid;grid-template-columns:52px 1fr 52px;gap:7px;align-items:center;margin-top:7px"><button id="rMinus">−</button><div style="text-align:center;font-size:25px;font-weight:900"><span id="rStake">10</span> ⭐</div><button id="rPlus">+</button></div></div><button class="wide" id="spinBtn" style="margin-top:9px">🎰 Крутить</button><p id="rouletteMsg"></p></div><div class="card"><h3>Последние 10</h3><div class="history" id="rouletteHistory"></div></div></section>
 <section id="mines" class="page"><h2>💣 MINES</h2><div class="card"><div class="grid2"><div class="stat">Баланс<br><b id="minesBalance">10</b> ⭐</div><div class="stat">Множитель<br><b id="mineMult">1.00×</b></div></div><div class="tabs" id="mineTabs" style="margin-top:10px"><button class="sel" data-mines="2">2 мины</button><button data-mines="5">5 мин</button><button data-mines="7">7 мин</button></div><div class="stat"><div class="muted">Ставка</div><div style="display:grid;grid-template-columns:52px 1fr 52px;gap:7px;align-items:center;margin-top:7px"><button id="mMinus">−</button><div style="text-align:center;font-size:25px;font-weight:900"><span id="mStake">10</span> ⭐</div><button id="mPlus">+</button></div></div><div class="history" style="margin-top:9px"><button class="secondary quickM" data-v="10">10</button><button class="secondary quickM" data-v="50">50</button><button class="secondary quickM" data-v="100">100</button></div><div class="mine-grid" id="mineGrid"></div><div class="grid2"><button class="wide" id="mineStart">▶️ Начать</button><button class="wide secondary" id="mineCash">💰 Забрать</button></div><p id="mineMsg" class="muted"></p></div></section>
 <section id="lucky" class="page"><h2>🎡 Lucky Spin</h2><div class="card"><div class="grid2"><div class="stat">Баланс<br><b id="luckyBalance">10</b> ⭐</div><div class="stat">Результат<br><b id="luckyMult">—</b></div></div><div class="wheel" id="luckyWheel"><div class="labels"><span class="l1">0×</span><span class="l2">1.2×</span><span class="l3">1.5×</span><span class="l4">2×</span><span class="l5">5×</span><span class="l6">10×</span></div></div><div class="stat"><div class="muted">Ставка</div><div style="display:grid;grid-template-columns:52px 1fr 52px;gap:7px;align-items:center;margin-top:7px"><button id="lMinus">−</button><div style="text-align:center;font-size:25px;font-weight:900"><span id="lStake">10</span> ⭐</div><button id="lPlus">+</button></div></div><button class="wide" id="luckyBtn" style="margin-top:9px">🎡 Крутить</button><p id="luckyMsg"></p></div><div class="card"><h3>Последние 10 результатов</h3><div class="history" id="luckyHistory"></div></div></section>
-<section id="higher" class="page"><h2>🔼🔽 Больше / Меньше</h2><div class="card"><div class="grid2"><div class="stat">Баланс<br><b id="hlBalance">10</b> ⭐</div><div class="stat">Ставка<br><div style="display:grid;grid-template-columns:40px 1fr 40px;gap:5px;align-items:center;margin-top:6px"><button id="hlMinus">−</button><b style="text-align:center"><span id="hlStake">10</span> ⭐</b><button id="hlPlus">+</button></div></div></div><div class="number" id="currentNumber">50</div><div class="hl"><button class="big" id="higherBtn">🔼 Больше</button><button class="big secondary" id="lowerBtn">🔽 Меньше</button></div><p id="hlResult"></p></div><div class="card"><h3>Последние 10 чисел</h3><div class="history" id="hlHistory"></div></div></section>
-<section id="rocket" class="page"><h2>🚀 Rocket Crash</h2><div class="card"><div class="grid2"><div class="stat">Баланс<br><b id="rocketBalance">10</b> ⭐</div><div class="stat">Ставка<br><b><span id="rocketStake">10</span> ⭐</b></div></div><div style="display:grid;grid-template-columns:52px 1fr 52px;gap:7px;align-items:center;margin-top:9px"><button id="xMinus">−</button><div style="text-align:center;font-size:25px;font-weight:900"><span id="xStake">10</span> ⭐</div><button id="xPlus">+</button></div><div class="history" style="margin-top:9px"><button class="secondary quickX" data-v="10">10</button><button class="secondary quickX" data-v="50">50</button><button class="secondary quickX" data-v="100">100</button></div><div class="rocket" id="rocketBox"><div class="r">🚀</div><div class="mult" id="rocketMult">1.00×</div></div><button class="wide" id="rocketStart" style="margin-top:9px">🚀 START</button><button class="wide secondary" id="rocketCash" style="margin-top:7px">💰 CASH OUT</button><p id="rocketMsg"></p></div><div class="card"><h3>Последние 10 крашей</h3><div class="history" id="rocketHistory"></div></div></section>
+<section id="higher" class="page"><h2>🔼🔽 Больше / Меньше <small style="display:block;font-size:12px;opacity:.7;font-weight:500">общий раунд для всех игроков</small></h2><div class="card"><div class="grid2"><div class="stat">Баланс<br><b id="hlBalance">10</b> ⭐</div><div class="stat">Ставка<br><div style="display:grid;grid-template-columns:40px 1fr 40px;gap:5px;align-items:center;margin-top:6px"><button id="hlMinus">−</button><b style="text-align:center"><span id="hlStake">10</span> ⭐</b><button id="hlPlus">+</button></div></div></div><div class="hstatus" id="hStatus">Подключаемся…</div><div class="number" id="currentNumber">50</div><div class="hl"><button class="big" id="higherBtn">🔼 Больше</button><button class="big secondary" id="lowerBtn">🔽 Меньше</button></div><p id="hlResult"></p></div><div class="card"><h3>Последние 10 чисел</h3><div class="history" id="hlHistory"></div></div><div class="card"><h3>Ставки в раунде <span id="hPlayers" style="font-size:13px;opacity:.7"></span></h3><div class="history" id="hBets"></div></div><div class="card"><details><summary>🔒 Проверка честности</summary><p id="hFair" style="font-size:12px;opacity:.8;word-break:break-all"></p></details></div></section>
+<section id="rocket" class="page"><h2>🚀 Rocket Crash <small style="display:block;font-size:12px;opacity:.7;font-weight:500">общий раунд для всех игроков</small></h2><div class="card"><div class="grid2"><div class="stat">Баланс<br><b id="rocketBalance">10</b> ⭐</div><div class="stat">Моя ставка<br><b id="rMyBet">—</b></div></div><div class="rocket" id="rocketBox"><div class="rstatus" id="rStatus">Подключаемся…</div><div class="r" id="rocketIcon">🚀</div><div class="mult" id="rocketMult">1.00×</div></div><div style="display:grid;grid-template-columns:52px 1fr 52px;gap:7px;align-items:center;margin-top:9px"><button id="xMinus">−</button><div style="text-align:center;font-size:25px;font-weight:900"><span id="xStake">10</span> ⭐</div><button id="xPlus">+</button></div><div class="history" style="margin-top:9px"><button class="secondary quickX" data-v="10">10</button><button class="secondary quickX" data-v="50">50</button><button class="secondary quickX" data-v="100">100</button><input id="rAuto" type="number" inputmode="decimal" step="0.1" min="1.1" placeholder="Авто-вывод ×" style="flex:1;min-width:110px;background:#121212;border:1px solid rgba(255,255,255,.12);border-radius:11px;color:#fff;padding:0 10px;font-size:14px"></div><button class="wide" id="rocketBet" style="margin-top:9px">🚀 Сделать ставку</button><button class="wide secondary" id="rocketCash" style="margin-top:7px">💰 Забрать</button><p id="rocketMsg"></p></div><div class="card"><h3>Последние 10 раундов</h3><div class="history" id="rocketHistory"></div></div><div class="card"><h3>Ставки в раунде <span id="rPlayers" style="font-size:13px;opacity:.7"></span></h3><div class="history" id="rBets"></div></div><div class="card"><details><summary>🔒 Проверка честности</summary><p id="rFair" style="font-size:12px;opacity:.8;word-break:break-all"></p></details></div></section>
 <section id="daily" class="page"><h2>🎁 Бонусная рулетка</h2><div class="card"><p>Бесплатно 1 раз в 24 часа.</p><div class="wheel" id="dailyWheel"><div class="labels"><span class="l1">5</span><span class="l2">15</span><span class="l3">25</span><span class="l4">50</span><span class="l5">75</span><span class="l6">100</span></div></div><button class="wide" id="dailyBtn">🎡 Крутить бесплатно</button><p id="dailyTimer" class="muted"></p><p id="dailyResult"></p></div></section>
 <section id="shop" class="page"><h2>🛒 Магазин</h2><div class="card"><h3>Telegram Stars → Farm Stars</h3><p class="muted">Выберите, сколько ⭐ хотите добавить на баланс.</p><div id="quickTopup" class="notice" style="display:none;margin-bottom:8px"></div><div class="stat" style="margin-bottom:8px"><div class="muted">Своя сумма</div><div style="display:grid;grid-template-columns:1fr 120px;gap:7px;margin-top:7px"><input id="customTopup" type="number" min="1" step="1" inputmode="numeric" placeholder="Количество Stars"><button id="customTopupBtn">Обменять</button></div><div class="muted" style="margin-top:6px">1 Telegram Star = 1 Farm Star</div></div><div id="shopButtons"></div><p id="shopMsg"></p></div></section>
 <section id="profile" class="page"><h2>👤 Профиль</h2><div class="card"><div style="display:flex;align-items:center;gap:12px"><img id="profilePhoto" src="" alt="" style="width:58px;height:58px;border-radius:50%;object-fit:cover;background:#202630;border:2px solid #35466f"><div><h3 id="playerName" style="margin:0">Игрок</h3><p id="telegramIdentity" class="muted" style="margin:5px 0 0"></p></div></div><div class="stat">⭐ Farm Stars<br><b id="pStars">10</b></div></div><div class="card"><h3>👥 Рефералы</h3><p>Успешных: <b id="refCount">0</b>/5</p><button class="wide secondary" id="shareReferral">🔗 Пригласить друга</button><div id="refLink" class="refbox" style="margin-top:8px;display:none"></div></div></section>
 </main></div><footer><div class="nav four"><button class="active" data-page="home">🎮<br>Игры</button><button data-page="farm">🌾<br>Ферма</button><button data-page="shop">🛒<br>Магазин</button><button data-page="profile">👤<br>Профиль</button></div></footer><div class="toast" id="toast"></div>
 <script>
+const farm3d=(function(){
+'use strict';
+const TAU=Math.PI*2, D2R=Math.PI/180;
+// kind: [название, эмодзи, радиус занимаемого места]
+const KINDS={
+ flowers:['Цветы','🌼',.7], tree:['Дерево','🌳',1.0], pine:['Ель','🌲',.9], bush:['Куст','🌿',.6],
+ mailbox:['Почтовый ящик','📮',.4], wood:['Поленница','🪵',.6], chicken:['Курица','🐔',.5], duck:['Утка','🦆',.5],
+ bale:['Тюк сена','🌾',.6], haystack:['Стог сена','🌾',1.0], bench:['Скамейка','🪑',.7], sunflower:['Подсолнухи','🌻',.6],
+ well:['Колодец','⛲',.9], scarecrow:['Пугало','🎃',.6], doghouse:['Собака и будка','🐕',1.0], lamp:['Фонарь','🏮',.3],
+ tractor:['Трактор','🚜',1.4], cow:['Корова','🐄',1.1], beehive:['Улей','🐝',.5], barn:['Амбар','🏚️',2.3],
+ birdhouse:['Скворечник','🐦',.3], sheep:['Овцы','🐑',.9], stall:['Прилавок','🏪',1.3], pond:['Пруд','💧',2.0],
+ stone:['Валун','🪨',.6], windmill:['Мельница','🌬️',1.5], silo:['Силос','🏭',1.0], pig:['Свинья','🐖',.8],
+ flag:['Флаг','🚩',.3], solar:['Солнечные панели','☀️',1.3], horse:['Лошадь','🐎',1.2], greenhouse:['Теплица','🌱',1.5],
+ truck:['Грузовик','🚚',1.5], trophy:['Золотой кубок','🏆',.8], barrel:['Бочка','🛢️',.4], crate:['Ящик','📦',.5],
+ fence:['Забор','🪵',0]
+};
+const MILE={2:'flowers',3:'tree',4:'mailbox',5:'wood',6:'bush',7:'chicken',8:'bale',9:'bench',11:'sunflower',12:'well',
+ 14:'scarecrow',16:'doghouse',18:'pine',20:'tractor',22:'lamp',25:'cow',28:'beehive',30:'barn',33:'duck',35:'haystack',
+ 38:'birdhouse',40:'sheep',43:'stall',45:'pond',48:'stone',50:'windmill',55:'silo',60:'pig',65:'flag',70:'solar',
+ 75:'horse',80:'greenhouse',85:'truck',90:'cow',95:'sheep',100:'trophy'};
+const FILL=['pine','fence','bush','flowers','lamp','barrel','fence','duck','stone','sunflower','crate','birdhouse','fence','beehive','bench','bush'];
+const ITEMS=[]; {let fi=0; for(let lv=2;lv<=100;lv++){const kind=MILE[lv]||FILL[fi++%FILL.length];ITEMS.push({lv,kind,name:KINDS[kind][0],emoji:KINDS[kind][1],r:KINDS[kind][2]});}}
+
+function rng(seed){let s=seed>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
+// ── раскладка (детерминированная) ──
+const HOUSE={x:-4.3,z:-3.4,r:3.7}, FIELD={x0:2.6,x1:7.0,z0:-6.2,z1:3.8};
+const GH=lv=>8+Math.floor(lv/20);   // половина стороны участка: растёт с уровнем
+(function layout(){
+ const R=rng(20240607), placed=[]; let fs=0;
+ const FENCE=[];[3.3,5.8].forEach(x=>FENCE.push({x,z:4.1,yaw:0}));[3.4,1.2,-1,-3.2,-5.4].forEach(z=>FENCE.push({x:7.3,z,yaw:Math.PI/2}));
+ [5.8,3.3].forEach(x=>FENCE.push({x,z:-6.5,yaw:0}));[-5.4,-3.2,-1,1.2,3.4].forEach(z=>FENCE.push({x:2.3,z,yaw:Math.PI/2}));
+ ITEMS.forEach(it=>{
+  if(it.kind==='fence'){const s=FENCE[fs++%FENCE.length];it.x=s.x;it.z=s.z;it.yaw=s.yaw;return}
+  const r=it.r; let ok=false;
+  for(let k=0;k<600&&!ok;k++){
+   const E=GH(it.lv)-1.0,x=-E+R()*2*E, z=-E+R()*2*E, m=k<300?.35:k<500?.1:0;
+   if(Math.hypot(x-HOUSE.x,z-HOUSE.z)<HOUSE.r+r) continue;
+   if(x>FIELD.x0-r&&x<FIELD.x1+r&&z>FIELD.z0-r&&z<FIELD.z1+r) continue;
+   if(placed.some(p=>Math.hypot(x-p.x,z-p.z)<p.r+r+m)) continue;
+   it.x=x;it.z=z;it.yaw=R()*TAU;placed.push({x,z,r});ok=true;
+  }
+  if(!ok){const E=GH(it.lv)-1.0;it.x=-E+R()*2*E;it.z=-E+R()*2*E;it.yaw=R()*TAU}
+ });
+})();
+
+// ── цвета ──
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const C={white:hex('#f6f3ec'),black:hex('#2b2b2b'),wood:hex('#9a6b3f'),wood2:hex('#c9965a'),dark:hex('#4a3320'),red:hex('#c0392b'),
+ redd:hex('#8e2a22'),grey:hex('#a9afb5'),greyd:hex('#7d858c'),green:hex('#5aa63f'),green2:hex('#478f35'),green3:hex('#6db84a'),
+ pine:hex('#2f7a45'),yellow:hex('#ecc23a'),hay:hex('#d9b44a'),hayd:hex('#c39b34'),pink:hex('#f0a9b4'),blue:hex('#4aa3d8'),
+ blued:hex('#2f6fa8'),cream:hex('#f3e2c0'),roofr:hex('#b5473a'),soil:hex('#6b4423'),soil2:hex('#573719'),orange:hex('#e8873a'),
+ gold:hex('#e8b923'),brown:hex('#8a5a34'),glass:hex('#cfeaf5')};
+const em=h=>{const c=hex(h);c.e=1;return c};
+const EMW=em('#ffd98a'),EML=em('#fff0b8');
+let night=0,GL=[],BORNFX=[];
+const hash=n=>{let x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+
+// ── сцена ──
+let cv=null,ctx=null,W=0,H=0,dpr=1;
+let level=1,crop='empty',prog=0,inited=false,houseLv=1,plotsN=2,EX=[];
+const born={};
+let yaw=.55,pitch=36*D2R,auto=true,drag=null,lastTouch=0,lastDraw=0;
+const LIGHT=(()=>{const v=[.45,.85,.3],l=Math.hypot(...v);return v.map(x=>x/l)})();
+let F=[],SH=[],gv=8;
+
+function mkT(x,y,z,ya,s){const c=Math.cos(ya),sn=Math.sin(ya);return{x,y,z,s,
+ p:(lx,ly,lz)=>[x+s*(lx*c+lz*sn),y+s*ly,z+s*(-lx*sn+lz*c)],
+ n:(n)=>[n[0]*c+n[2]*sn,n[1],-n[0]*sn+n[2]*c]}}
+function face(T,pts,n,col){const l=Math.hypot(n[0],n[1],n[2])||1;F.push({v:pts.map(p=>T.p(p[0],p[1],p[2])),n:T.n([n[0]/l,n[1]/l,n[2]/l]),c:col})}
+function box(T,cx,by,cz,sx,sy,sz,col,tilt){
+ const hx=sx/2,hz=sz/2,ct=Math.cos(tilt||0),st=Math.sin(tilt||0);
+ const R=(x,y,z)=>{if(!tilt)return[x,y,z];const dy=y-by,dz=z-cz;return[x,by+dy*ct-dz*st,cz+dy*st+dz*ct]};
+ const RN=n=>tilt?[n[0],n[1]*ct-n[2]*st,n[1]*st+n[2]*ct]:n;
+ const x0=cx-hx,x1=cx+hx,y0=by,y1=by+sy,z0=cz-hz,z1=cz+hz;
+ const q=(p,n)=>face(T,p.map(a=>R(a[0],a[1],a[2])),RN(n),col);
+ q([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],[0,1,0]);
+ q([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],[0,0,1]);
+ q([[x1,y0,z0],[x0,y0,z0],[x0,y1,z0],[x1,y1,z0]],[0,0,-1]);
+ q([[x1,y0,z1],[x1,y0,z0],[x1,y1,z0],[x1,y1,z1]],[1,0,0]);
+ q([[x0,y0,z0],[x0,y0,z1],[x0,y1,z1],[x0,y1,z0]],[-1,0,0]);
+ if(tilt)q([[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]],[0,-1,0]);
+}
+function cyl(T,cx,by,cz,r,h,col,n,axis){
+ n=n||8;axis=axis||'y';let A,U,V;
+ if(axis==='y'){A=[0,1,0];U=[1,0,0];V=[0,0,1]}else if(axis==='x'){A=[1,0,0];U=[0,1,0];V=[0,0,1]}else{A=[0,0,1];U=[1,0,0];V=[0,1,0]}
+ const pt=(t,a)=>{const c=Math.cos(a),s=Math.sin(a);return[cx+A[0]*t+r*(U[0]*c+V[0]*s),by+A[1]*t+r*(U[1]*c+V[1]*s),cz+A[2]*t+r*(U[2]*c+V[2]*s)]};
+ for(let k=0;k<n;k++){const a0=k/n*TAU,a1=(k+1)/n*TAU,am=(a0+a1)/2,c=Math.cos(am),s=Math.sin(am);
+  face(T,[pt(0,a0),pt(0,a1),pt(h,a1),pt(h,a0)],[U[0]*c+V[0]*s,U[1]*c+V[1]*s,U[2]*c+V[2]*s],col)}
+ const top=[],bot=[];for(let k=0;k<n;k++){top.push(pt(h,k/n*TAU));bot.push(pt(0,k/n*TAU))}
+ face(T,top,A,col); if(axis!=='y')face(T,bot,[-A[0],-A[1],-A[2]],col);
+}
+function cone(T,cx,by,cz,r,h,col,n){n=n||8;const ap=[cx,by+h,cz];
+ for(let k=0;k<n;k++){const a0=k/n*TAU,a1=(k+1)/n*TAU,am=(a0+a1)/2;
+  face(T,[[cx+r*Math.cos(a0),by,cz+r*Math.sin(a0)],[cx+r*Math.cos(a1),by,cz+r*Math.sin(a1)],ap],[h*Math.cos(am),r,h*Math.sin(am)],col)}}
+function blob(T,cx,cy,cz,r,col,sy){sy=sy||1;const e=35*D2R,n=6,rr=r*Math.cos(e),yy=r*sy*Math.sin(e);
+ const top=[cx,cy+r*sy,cz],bot=[cx,cy-r*sy,cz];
+ const R1=[],R2=[];for(let k=0;k<n;k++){const a=k/n*TAU+.3;R1.push([cx+rr*Math.cos(a),cy+yy,cz+rr*Math.sin(a)]);R2.push([cx+rr*Math.cos(a),cy-yy,cz+rr*Math.sin(a)])}
+ const nrm=(p)=>[p[0]-cx,(p[1]-cy)/(sy*sy),p[2]-cz];
+ const cen=(ps)=>[ps.reduce((a,p)=>a+p[0],0)/ps.length,ps.reduce((a,p)=>a+p[1],0)/ps.length,ps.reduce((a,p)=>a+p[2],0)/ps.length];
+ for(let k=0;k<n;k++){const k2=(k+1)%n;
+  let f=[top,R1[k],R1[k2]];face(T,f,nrm(cen(f)),col);
+  f=[R1[k],R1[k2],R2[k2],R2[k]];face(T,f,nrm(cen(f)),col);
+  f=[bot,R2[k2],R2[k]];face(T,f,nrm(cen(f)),col)}}
+function gable(T,cx,by,cz,w,d,h,col,ov){ov=ov==null?.15:ov;
+ const x0=cx-w/2-ov,x1=cx+w/2+ov,z0=cz-d/2-ov,z1=cz+d/2+ov,y1=by+h,run=d/2+ov;
+ face(T,[[x0,by,z1],[x1,by,z1],[x1,y1,cz],[x0,y1,cz]],[0,run,h],col);
+ face(T,[[x1,by,z0],[x0,by,z0],[x0,y1,cz],[x1,y1,cz]],[0,run,-h],col);
+ face(T,[[x0,by,z0],[x0,by,z1],[x0,y1,cz]],[-1,0,0],col);
+ face(T,[[x1,by,z1],[x1,by,z0],[x1,y1,cz]],[1,0,0],col)}
+function quad2(T,pts,col){face(T,pts,[0,0,1],col);face(T,pts,[0,0,-1],col)}
+function mk(T){return{B:(...a)=>box(T,...a),C:(...a)=>cyl(T,...a),K:(...a)=>cone(T,...a),S:(...a)=>blob(T,...a),G:(...a)=>gable(T,...a),Q:(...a)=>quad2(T,...a)}}
+
+// ── дом (меняется с уровнем) ──
+function house(t){
+ const lv=houseLv,st=lv>=70?5:lv>=45?4:lv>=25?3:lv>=10?2:1;
+ const T=mkT(HOUSE.x,0,HOUSE.z,.35,1),g=mk(T);
+ const roof=lv>=100?C.gold:C.roofr;
+ g.B(0,0,0,3.0,1.8,2.6,C.cream);
+ const WIN=night>.35?EMW:C.glass;
+ g.B(0,0,1.31,.55,1.05,.06,C.dark);g.S(.18,.5,1.36,.035,C.gold);g.B(0,1.0,1.33,.7,.07,.05,C.white);
+ [-.95,.95].forEach(a=>{g.B(a,.74,1.30,.62,.62,.05,C.white);g.B(a,.8,1.33,.5,.5,.05,WIN);g.B(a,.8,1.36,.04,.5,.03,C.white);g.B(a,1.03,1.36,.5,.04,.03,C.white);
+  g.B(a,.42,1.4,.66,.2,.2,C.wood);[-.2,0,.2].forEach((d,j)=>g.S(a+d,.66,1.4,.1,hex(['#ff6f91','#ffd23f','#ff9a5c'][j]),.9))});
+ let top=1.8;
+ if(st>=3){g.B(0,1.8,0,2.7,1.5,2.4,C.cream);g.B(-.8,2.35,1.21,.56,.56,.05,C.white);g.B(.8,2.35,1.21,.56,.56,.05,C.white);g.B(-.8,2.38,1.24,.46,.46,.05,WIN);g.B(.8,2.38,1.24,.46,.46,.05,WIN);top=3.3}
+ g.G(0,top,0,st>=3?2.7:3.0,st>=3?2.4:2.6,1.1,roof,.22);g.B(0,top+1.08,0,st>=3?2.9:3.2,.1,.14,[Math.max(0,roof[0]-40),Math.max(0,roof[1]-30),Math.max(0,roof[2]-30)]);
+ if(st>=2){g.B(.9,top-.2,-.5,.4,1.3,.4,C.greyd);g.B(.9,top+1.1,-.5,.5,.1,.5,[110,116,122]);
+  for(let i=0;i<3;i++){const ph=(t*.4+i/3)%1;g.S(.9,top+1.3+ph*1.6,-.5,.14+.22*ph,[235-ph*45,235-ph*45,238-ph*45])}}
+ if(st>=4){g.B(0,0,1.9,3.0,.18,1.2,C.wood2);g.B(-1.3,.18,2.35,.1,1.3,.1,C.white);g.B(1.3,.18,2.35,.1,1.3,.1,C.white);g.G(0,1.5,2.1,3.0,1.0,.45,roof,.1);
+  g.B(2.7,0,.1,1.9,1.5,2.3,C.cream);g.G(2.7,1.5,.1,1.9,2.3,.7,roof,.15);g.B(2.7,0,1.27,1.3,1.2,.05,C.grey)}
+ if(st>=5){g.C(-1.7,0,-.9,.8,4.0,C.cream,10);g.K(-1.7,4.0,-.9,1.0,1.3,C.blued,10);g.B(-1.7,2.5,-.1,.3,.4,.05,WIN)}
+ if(lv>=100){g.C(0,top+1.0,0,.03,1.1,C.white,5);g.Q([[0,top+2.1,0],[.55,top+2.0,0],[0,top+1.75,0]],C.red)}
+ SH.push({x:HOUSE.x,z:HOUSE.z,r:st>=4?4.0:2.4});
+}
+// ── поля ──
+function field(t){
+ const n=plotsN,T=mkT(0,0,0,0,1),g=mk(T);
+ for(let i=0;i<n;i++){
+  const col=i%2,row=(i/2)|0,px=3.7+col*2.2,pz=-5.2+row*2.0;
+  g.B(px,.04,pz,2.0,.16,2.0,C.soil);
+  for(let f=-1;f<=1;f++)g.B(px+f*.6,.2,pz,.14,.02,1.7,C.soil2);
+  if(crop!=='empty'){
+   const hgt=.12+.85*prog,k=Math.min(1,prog*1.2);
+   const col2=[90+(232-90)*k|0,166+(185-166)*k|0,63+(35-63)*k|0];
+   for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){
+    const sway=crop==='ready'?Math.sin(t*2+a+b*1.3+i)*.04:0;
+    g.B(px+a*.6+sway,.2,pz+b*.55,.11,hgt,.11,col2);
+    if(prog>.65)g.B(px+a*.6+sway,.2+hgt,pz+b*.55,.13,.2,.13,[232,185,35]);
+   }}
+ }
+}
+// ── предметы ──
+function anim(it,i,t,wander){
+ if(!wander)return[it.x,it.z,it.yaw];
+ const a=t*.22+i*1.7,rr=.55;return[it.x+Math.cos(a)*rr,it.z+Math.sin(a)*rr,-(a+Math.PI/2)];
+}
+const WANDER={chicken:1,duck:1,cow:1,sheep:1,pig:1,horse:1};
+function item(it,i,t){
+ let s=1;const b=born[it.lv];
+ if(b){const u=(t-b)/.9;if(u>=1&&t-b>2.4)delete born[it.lv];else if(u>=1){BORNFX.push({x:it.x,z:it.z,u:(t-b-.9)/1.5+1,r:it.r})}else{BORNFX.push({x:it.x,z:it.z,u:u,r:it.r});const c1=1.70158,c3=c1+1,v=u-1;s=Math.max(.01,1+c3*v*v*v+c1*v*v)}}
+ const [x,z,ya]=anim(it,i,t,WANDER[it.kind]);
+ const hv=hash(it.lv),sv=(k0=>k0==='tree'||k0==='pine'||k0==='bush'||k0==='stone'?.85+.32*hv:1)(it.kind),vg=c=>c.map(v=>Math.min(255,v*(.9+.22*hash(it.lv+9))));
+ const T=mkT(x,0,z,ya,s*sv),g=mk(T),k=it.kind;
+ const bob=Math.abs(Math.sin(t*5+i))*.04;
+ if(k!=='fence')SH.push({x,z,r:it.r*.8*s});
+ switch(k){
+ case 'tree':g.C(0,0,0,.16,.9,C.dark,6);g.S(0,1.3,0,.85,vg(C.green2));g.S(-.35,1.55,.15,.5,vg(C.green));g.S(.3,1.95,.1,.55,vg(C.green3));g.S(.05,2.25,0,.3,vg([140,205,90]));break;
+ case 'pine':g.C(0,0,0,.14,.5,C.dark,6);g.K(0,.4,0,.85,1.3,vg(C.pine));g.K(0,1.2,0,.65,1.1,vg([60,140,80]));g.K(0,1.9,0,.4,.9,vg([80,165,100]));break;
+ case 'bush':g.S(0,.35,0,.5,vg(C.green2),.8);g.S(.35,.28,.2,.3,vg(C.green3),.8);g.S(-.25,.3,-.2,.25,vg(C.green),.8);[[.1,.55,.25],[-.2,.45,.3]].forEach(([a,b2,c2],j)=>g.S(a,b2,c2,.06,hex(j?'#ff6f91':'#ffd23f')));break;
+ case 'flowers':g.B(0,0,0,.9,.05,.9,C.green);[[-.25,-.2,'#e74c6f'],[.2,-.25,'#f6d33c'],[.05,.2,'#fff'],[-.28,.25,'#b86bd6'],[.3,.15,'#f08a3c']].forEach(([a,b2,c])=>{g.C(a,.05,b2,.015,.28,C.green,4);g.S(a,.36,b2,.1,hex(c))});break;
+ case 'sunflower':[[-.2,0],[.2,.1],[0,-.2]].forEach(([a,b2],j)=>{g.C(a,0,b2,.03,.9+j*.12,C.green,5);g.S(a,.95+j*.12,b2,.2,C.yellow,.6);g.S(a,.95+j*.12,b2+.07,.1,C.dark,.6)});break;
+ case 'mailbox':g.C(0,0,0,.05,.8,C.wood,6);g.B(0,.8,0,.38,.26,.22,C.red);g.B(.22,.9,0,.04,.2,.05,C.yellow);break;
+ case 'wood':[[-.22,.12],[.02,.12],[-.1,.33]].forEach(([a,b2])=>g.C(a,b2,-.4,.12,.8,C.wood,6,'z'));break;
+ case 'chicken':case 'duck':{const c=k==='chicken'?C.white:C.yellow;g.S(0,.3+bob,0,.2,c,.9);g.S(.18,.5+bob,0,.1,c);g.B(.27,.46+bob,0,.07,.04,.05,C.orange);if(k==='chicken')g.B(.17,.58+bob,0,.05,.07,.04,C.red);g.B(0,0,.06,.02,.15,.02,C.orange);g.B(0,0,-.06,.02,.15,.02,C.orange);break}
+ case 'bale':g.C(0,0,0,.5,.55,C.hay,10);g.C(0,.55,0,.4,.02,C.hayd,10);break;
+ case 'haystack':g.C(0,0,0,.95,.3,C.hayd,10);g.K(0,.28,0,.95,1.3,C.hay,10);break;
+ case 'bench':g.B(0,.35,0,1.0,.08,.35,C.wood2);g.B(-.4,0,0,.08,.35,.3,C.wood);g.B(.4,0,0,.08,.35,.3,C.wood);g.B(0,.45,-.15,1.0,.28,.06,C.wood2);break;
+ case 'well':g.C(0,0,0,.6,.5,C.grey,10);g.C(0,.48,0,.45,.04,C.blue,10);g.B(-.55,0,0,.08,1.3,.08,C.wood);g.B(.55,0,0,.08,1.3,.08,C.wood);g.G(0,1.3,0,1.3,.9,.45,C.roofr,.12);break;
+ case 'scarecrow':g.C(0,0,0,.04,1.4,C.wood,5);g.B(0,1.0,0,1.0,.06,.06,C.wood);g.B(0,.7,0,.34,.45,.16,C.red);g.S(0,1.5,0,.17,[232,195,106]);g.K(0,1.58,0,.28,.3,[107,74,42],8);break;
+ case 'doghouse':g.B(0,0,0,.7,.45,.6,C.wood2);g.G(0,.45,0,.7,.6,.3,C.roofr,.08);g.B(0,0,.31,.28,.3,.03,C.dark);g.S(.75,.22,.25,.16,[160,112,58],.9);g.S(.88,.3,.25,.09,[160,112,58]);break;
+ case 'lamp':g.C(0,0,0,.05,1.5,[70,70,75],6);g.B(0,1.45,0,.3,.06,.3,[60,60,65]);g.S(0,1.65,0,.17,night>.3?EML:[255,233,160]);g.K(0,1.78,0,.22,.14,[60,60,65],6);GL.push([x,1.65*s,z]);break;
+ case 'tractor':g.B(0,.35,0,1.4,.5,.7,C.red);g.B(-.35,.85,0,.6,.75,.65,C.redd);g.B(-.35,1.55,0,.7,.06,.75,C.redd);g.B(-.04,1.0,0,.03,.4,.5,C.glass);g.C(.5,.85,.15,.05,.45,C.greyd,6);
+  g.C(-.45,.38,-.42,.38,.12,C.black,10,'z');g.C(-.45,.38,.30,.38,.12,C.black,10,'z');g.C(.5,.22,-.4,.22,.1,C.black,8,'z');g.C(.5,.22,.30,.22,.1,C.black,8,'z');break;
+ case 'cow':{const h=Math.sin(t*1.5+i)*.04;g.B(0,.45,0,1.1,.55,.55,C.white);g.B(-.2,.45,0,.35,.57,.3,C.black);g.B(.25,.7,.1,.3,.12,.46,C.black);
+  g.B(.72,.62+h,0,.4,.38,.4,C.white);g.B(.94,.55+h,0,.1,.2,.3,C.pink);g.B(.65,1.0+h,.18,.06,.1,.06,C.greyd);g.B(.65,1.0+h,-.18,.06,.1,.06,C.greyd);
+  [[-.4,-.2],[-.4,.2],[.4,-.2],[.4,.2]].forEach(([a,b2])=>g.B(a,0,b2,.12,.45,.12,C.white));g.B(-.58,.5,0,.05,.5,.05,C.black);break}
+ case 'beehive':g.B(0,0,0,.4,.3,.4,C.wood);for(let j=0;j<3;j++)g.B(0,.3+j*.2,0,.5,.2,.5,j%2?C.yellow:[214,170,50]);g.B(0,.9,0,.58,.06,.58,C.wood2);break;
+ case 'barn':g.B(0,0,0,3.0,1.8,2.2,C.red);g.G(0,1.8,0,3.0,2.2,1.2,[122,46,37],.2);g.B(0,0,1.11,1.1,1.4,.05,C.white);g.B(0,.15,1.14,1.1,.1,.02,C.red);g.B(0,1.05,1.14,1.1,.1,.02,C.red);g.B(0,1.9,1.12,.4,.4,.04,C.white);break;
+ case 'birdhouse':g.C(0,0,0,.04,1.2,C.wood,5);g.B(0,1.2,0,.32,.3,.32,[217,160,102]);g.G(0,1.5,0,.34,.34,.2,C.roofr,.05);g.B(0,1.28,.17,.09,.09,.02,C.dark);break;
+ case 'sheep':g.S(0,.5,0,.42,[244,241,234],.85);g.B(.45,.5,0,.22,.24,.22,[58,58,58]);[[-.2,-.15],[-.2,.15],[.2,-.15],[.2,.15]].forEach(([a,b2])=>g.B(a,0,b2,.07,.3,.07,[58,58,58]));break;
+ case 'stall':[[-.65,-.35],[.65,-.35],[-.65,.35],[.65,.35]].forEach(([a,b2])=>g.B(a,0,b2,.07,1.5,.07,C.wood));g.G(0,1.5,0,1.8,1.1,.45,C.red,.2);g.B(0,.55,.15,1.4,.08,.6,C.wood2);g.B(0,0,.15,1.3,.55,.5,C.wood);
+  [[-.4,'#d6402f'],[-.1,'#f08a3c'],[.2,'#d6402f'],[.5,'#9bc23a']].forEach(([a,c])=>g.S(a,.72,.15,.13,hex(c)));break;
+ case 'pond':{const w=.5+.5*Math.sin(t*1.4),wc=[74+w*18,163+w*14,216+w*10];g.C(0,0,0,2.0,.04,C.hayd,16);g.C(0,0,0,1.8,.06,wc,16);g.C(.2+Math.sin(t)*.2,.07,-.3,.5,.005,[150,210,240],12);
+  g.C(.6,.07,.3,.25,.01,C.green,8);g.C(-.5,.07,-.4,.2,.01,C.green,8);[[1.4,.3],[-1.2,.9],[.9,-1.2]].forEach(([a2,b2])=>g.C(a2,0,b2,.03,.7,C.green2,4));break}
+ case 'stone':g.S(0,.3,0,.5,[154,160,166],.7);g.S(.5,.2,.2,.3,[139,145,151],.7);break;
+ case 'windmill':{g.C(0,0,0,.75,2.4,[233,220,192],8);g.K(0,2.4,0,.9,.8,[138,75,42],8);const a0=t*1.1;
+  for(let j=0;j<4;j++){const a=a0+j*Math.PI/2,dx=Math.cos(a),dy=Math.sin(a),px=-dy*.17,py=dx*.17,hy=2.5;
+   g.Q([[dx*.25+px,hy+dy*.25+py,.9],[dx*1.7+px,hy+dy*1.7+py,.9],[dx*1.7-px,hy+dy*1.7-py,.9],[dx*.25-px,hy+dy*.25-py,.9]],C.white)}
+  g.S(0,2.5,.9,.14,C.wood);break}
+ case 'silo':g.C(0,0,0,.7,2.6,[207,212,217],10);g.K(0,2.6,0,.75,.7,[138,145,153],10);g.B(.69,0,-.03,.05,2.4,.06,C.greyd);break;
+ case 'pig':g.B(0,.3,0,.8,.4,.45,C.pink);g.B(.5,.36,0,.3,.3,.3,C.pink);g.B(.68,.34,0,.08,.14,.2,[232,154,165]);[[-.25,-.15],[-.25,.15],[.25,-.15],[.25,.15]].forEach(([a,b2])=>g.B(a,0,b2,.1,.3,.1,C.pink));break;
+ case 'flag':g.C(0,0,0,.04,2.2,[220,220,220],6);g.Q([[0,2.2,0],[.75,2.1,0],[.75,1.7,0],[0,1.8,0]],C.red);break;
+ case 'solar':[-.65,.65].forEach(a=>{g.B(a,.35,0,1.0,.05,.7,[31,58,107],-.55);g.B(a,0,0,.06,.4,.06,C.greyd)});break;
+ case 'horse':g.B(0,.75,0,1.2,.5,.45,[139,90,43]);g.B(.62,1.0,0,.3,.6,.24,[139,90,43]);g.B(.82,1.45,0,.5,.26,.22,[139,90,43]);g.B(.5,1.15,0,.08,.55,.1,C.dark);
+  [[-.45,-.15],[-.45,.15],[.45,-.15],[.45,.15]].forEach(([a,b2])=>g.B(a,0,b2,.1,.75,.1,[120,76,36]));g.B(-.66,.8,0,.1,.5,.1,C.dark);break;
+ case 'greenhouse':g.B(0,0,0,2.0,.9,1.4,C.glass);g.G(0,.9,0,2.0,1.4,.6,[227,244,251],.05);g.B(0,0,.71,.5,.8,.03,C.white);g.B(-.6,0,.71,.04,.9,.03,C.white);g.B(.6,0,.71,.04,.9,.03,C.white);break;
+ case 'truck':g.B(-.45,.35,0,1.1,.5,.8,C.blued);g.B(.5,.35,0,.7,.95,.8,[60,120,190]);g.B(.86,.7,0,.03,.4,.6,C.glass);
+  [[-.5,-.4],[-.5,.3],[.5,-.4],[.5,.3]].forEach(([a,b2])=>g.C(a,.25,b2,.25,.1,C.black,8,'z'));break;
+ case 'trophy':g.B(0,0,0,.7,.4,.7,C.greyd);g.C(0,.4,0,.14,.3,C.gold,8);g.S(0,.95,0,.36,C.gold,.9);g.S(0,1.45+Math.sin(t*3)*.05,0,.1,[255,235,140]);break;
+ case 'barrel':g.C(0,0,0,.3,.6,C.brown,10);g.C(0,.15,0,.31,.05,[70,70,70],10);g.C(0,.4,0,.31,.05,[70,70,70],10);break;
+ case 'crate':g.B(0,0,0,.6,.5,.6,C.wood2);g.B(0,.5,0,.52,.02,.52,C.wood);break;
+ case 'fence':g.B(-1,0,0,.1,.8,.1,C.wood);g.B(1,0,0,.1,.8,.1,C.wood);g.B(-1,.8,0,.14,.05,.14,C.wood2);g.B(1,.8,0,.14,.05,.14,C.wood2);g.B(0,.3,0,2.0,.1,.06,C.wood2);g.B(0,.58,0,2.0,.1,.06,C.wood2);break;
+ }
+}
+// ── время суток ──
+const lerp=(a,b,k)=>a+(b-a)*k,lerpC=(a,b,k)=>[lerp(a[0],b[0],k),lerp(a[1],b[1],k),lerp(a[2],b[2],k)];
+const PK=[[0,'#070b24','#141c4a','#2b3a78',[.38,.43,.66],[.10,.12,.25],[70,82,135],1],
+ [5.5,'#2b2f6e','#a45f7e','#f2a77a',[.45,.42,.55],[.55,.35,.25],[240,175,160],.5],
+ [8,'#4f9fe8','#a9d8fb','#eaf7ff',[.60,.66,.78],[.62,.58,.48],[255,255,255],0],
+ [13,'#3f93e3','#9fd2fa','#e6f5ff',[.62,.68,.80],[.66,.62,.50],[255,255,255],0],
+ [17.5,'#5a8fd6','#f3c58b','#ffe7c4',[.58,.55,.62],[.78,.56,.36],[255,236,215],0],
+ [19.5,'#3b3e8f','#e0735a','#f8b878',[.45,.40,.55],[.70,.36,.26],[250,190,170],.35],
+ [21.5,'#0e1438','#1a2358','#34437f',[.40,.44,.64],[.12,.15,.28],[80,92,145],1],
+ [24,'#070b24','#141c4a','#2b3a78',[.38,.43,.66],[.10,.12,.25],[70,82,135],1]];
+PK.forEach(k=>{k[1]=hex(k[1]);k[2]=hex(k[2]);k[3]=hex(k[3])});
+function palette(h){let i=0;while(i<PK.length-2&&h>=PK[i+1][0])i++;const a=PK[i],b=PK[i+1],k=(h-a[0])/(b[0]-a[0]);
+ return{top:lerpC(a[1],b[1],k),mid:lerpC(a[2],b[2],k),bot:lerpC(a[3],b[3],k),amb:lerpC(a[4],b[4],k),sun:lerpC(a[5],b[5],k),cloud:lerpC(a[6],b[6],k),night:lerp(a[7],b[7],k),h}}
+let hourOverride=null;
+const hourNow=()=>hourOverride!=null?hourOverride:(()=>{const d=new Date();return d.getHours()+d.getMinutes()/60})();
+const css=(c,a)=>'rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')';
+const cssa=(c,a)=>'rgba('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+','+a+')';
+// ── декор (трава, цветочки) — раскладка один раз ──
+const TUFTS=[],DOTS=[];
+(function(){const R=rng(777);
+ const free=(x,z)=>!(Math.hypot(x-HOUSE.x,z-HOUSE.z)<3.2)&&!(x>2.0&&x<7.7&&z>-6.9&&z<4.5);
+ while(TUFTS.length<260){const x=-12.7+R()*25.4,z=-12.7+R()*25.4;if(free(x,z))TUFTS.push({x,z,h:.18+R()*.22,a:R()*TAU,c:R()})}
+ while(DOTS.length<70){const x=-12.7+R()*25.4,z=-12.7+R()*25.4;if(free(x,z))DOTS.push({x,z,c:['#ffffff','#ffe066','#ff8fab','#c9a7ff'][(R()*4)|0]})}
+})();
+const PATH=[[-3.7,-1.5],[-2.4,-.7],[-1.0,-.2],[.4,-.35],[2.3,-.6]];
+const STARS=(()=>{const R=rng(99),a=[];for(let i=0;i<50;i++)a.push([R(),R()*.55,R()*TAU,.6+R()*1.2]);return a})();
+const BFLY=[[0,'#ff9a3c'],[1.7,'#ffd23f'],[3.1,'#7fd1ff'],[4.4,'#ff7bb0'],[5.6,'#c9a7ff'],[2.4,'#ffffff']];
+
+// ── камера и отрисовка ──
+function resize(){
+ if(!cv)return;const w=cv.clientWidth||360,h=cv.clientHeight||340;dpr=Math.min(2,window.devicePixelRatio||1);
+ if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+ W=w;H=h;ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function pill(x,y,text){ctx.font='600 12px -apple-system,Segoe UI,Roboto,sans-serif';const w=ctx.measureText(text).width+18,h=24,r=12;
+ ctx.fillStyle='rgba(10,16,30,.52)';ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(text,x+9,y+h/2+.5);return w}
+function draw(t){
+ resize();ctx.clearRect(0,0,W,H);
+ const pal=palette(hourNow());night=pal.night;
+ // небо
+ const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,css(pal.top));sky.addColorStop(.55,css(pal.mid));sky.addColorStop(1,css(pal.bot));ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ if(night>.45){STARS.forEach(s=>{const tw=.5+.5*Math.sin(t*2+s[2]);ctx.fillStyle='rgba(255,255,255,'+((night-.4)*(.35+.65*tw)).toFixed(2)+')';ctx.beginPath();ctx.arc(s[0]*W,s[1]*H,s[3]*.8,0,TAU);ctx.fill()})}
+ // солнце / луна
+ {const p=Math.min(1,Math.max(0,(pal.h-6)/14)),isNight=night>.6,sx=isNight?W*.78:W*(.12+.76*p),sy=isNight?H*.13:H*(.34-.26*Math.sin(p*Math.PI));
+  const gl=ctx.createRadialGradient(sx,sy,0,sx,sy,isNight?60:90);gl.addColorStop(0,isNight?'rgba(200,215,255,.35)':'rgba(255,240,190,.75)');gl.addColorStop(1,'rgba(255,240,190,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(sx,sy,90,0,TAU);ctx.fill();
+  ctx.fillStyle=isNight?'#eef2ff':'#fff6c2';ctx.beginPath();ctx.arc(sx,sy,isNight?15:19,0,TAU);ctx.fill();
+  if(isNight){ctx.fillStyle='rgba(120,135,190,.35)';[[-4,-3,4],[4,4,3]].forEach(([dx,dy,r])=>{ctx.beginPath();ctx.arc(sx+dx,sy+dy,r,0,TAU);ctx.fill()})}}
+ // облака сверху и птицы
+ const cc=pal.cloud;
+ [[0,48,1],[170,26,.8],[310,70,.9]].forEach(([o,y,s],j)=>{const x=((t*(5+j*2.5)+o)%(W+180))-90;
+  ctx.fillStyle=cssa(cc,.9);[[0,0,26],[22,-6,20],[-22,-4,18],[40,2,16],[-40,3,14]].forEach(([dx,dy,r])=>{ctx.beginPath();ctx.ellipse(x+dx*s,y+dy*s,r*s*1.25,r*s*.72,0,0,TAU);ctx.fill()});
+  ctx.fillStyle=cssa([cc[0]*.82,cc[1]*.86,cc[2]*.95],.5);ctx.beginPath();ctx.ellipse(x,y+11*s,52*s,9*s,0,0,TAU);ctx.fill()});
+ if(night<.5){ctx.strokeStyle='rgba(40,50,70,.55)';ctx.lineWidth=1.4;ctx.lineCap='round';
+  [0,1,2].forEach(j=>{const bx=((t*26+j*70)%(W+80))-40,by=H*.2+Math.sin(t*.8+j*2)*14+j*10,fl=Math.sin(t*9+j)*4;ctx.beginPath();ctx.moveTo(bx-7,by+fl);ctx.quadraticCurveTo(bx-3.5,by-3,bx,by);ctx.quadraticCurveTo(bx+3.5,by-3,bx+7,by+fl);ctx.stroke()})}
+ // море облаков под островом
+ for(let j=0;j<16;j++){const x=((j*W/12+t*(3+(j%3)*1.4))%(W+240))-120,y=H*(.97+.02*Math.sin(j*2.1)),r=44+((j*37)%30);
+  ctx.fillStyle=cssa(cc,.92);ctx.beginPath();ctx.ellipse(x,y,r*1.5,r*.55,0,0,TAU);ctx.fill();
+  ctx.fillStyle=cssa([Math.min(255,cc[0]+12),Math.min(255,cc[1]+12),Math.min(255,cc[2]+12)],.7);ctx.beginPath();ctx.ellipse(x+8,y-r*.22,r*1.0,r*.35,0,0,TAU);ctx.fill()}
+ F=[];SH=[];GL=[];BORNFX=[];
+ const D=40,cx0=W/2;
+ const cp=Math.cos(pitch),sp=Math.sin(pitch),cw=Math.cos(yaw),sw=Math.sin(yaw);
+ const G=GH(level);gv+=(G-gv)*.06;if(Math.abs(G-gv)<.01)gv=G;
+ const FOC=Math.min(W*1.2,(W/2*1.02*D)/(gv*1.4142)),cy0b=H*.5;
+ const pj=(x,y,z)=>{const x1=x*cw-z*sw,z1=x*sw+z*cw,y2=y*cp-z1*sp,z2=y*sp+z1*cp,d=D-z2,k=FOC/d;return[cx0+x1*k,cy0b-y2*k,d,x1,y2,z2,k]};
+ // освещение
+ const hemi=n=>.8+.2*(n[1]*.5+.5),ndl=n=>Math.max(0,n[0]*LIGHT[0]+n[1]*LIGHT[1]+n[2]*LIGHT[2]);
+ const LF=n=>{const l=ndl(n),h=hemi(n);return[pal.amb[0]*h+pal.sun[0]*l,pal.amb[1]*h+pal.sun[1]*l,pal.amb[2]*h+pal.sun[2]*l]};
+ const shadeC=(c,f,fog,dark)=>{const k=fog||0,d=dark||1;return'rgb('+Math.min(255,(c[0]*f[0]*d*(1-k)+pal.bot[0]*k)|0)+','+Math.min(255,(c[1]*f[1]*d*(1-k)+pal.bot[1]*k)|0)+','+Math.min(255,(c[2]*f[2]*d*(1-k)+pal.bot[2]*k)|0)+')'};
+ const UP=LF([0,1,0]);
+ const gfill=(pts,col,edge)=>{ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let k=1;k<pts.length;k++)ctx.lineTo(pts[k][0],pts[k][1]);ctx.closePath();ctx.fill();ctx.strokeStyle=edge||col;ctx.lineWidth=.7;ctx.stroke()};
+ const vis=(p,q,n)=>{const n1x=n[0]*cw-n[2]*sw,n1z=n[0]*sw+n[2]*cw,nz2=n[1]*sp+n1z*cp,ny2=n[1]*cp-n1z*sp,m=pj((p[0]+q[0])/2,(p[1]+q[1])/2,(p[2]+q[2])/2);return n1x*(0-m[3])+ny2*(0-m[4])+nz2*(D-m[5])>0};
+ // каменное основание острова
+ {const y0=-1.5,lv=[[G,y0,G*.74,y0-1.9],[G*.74,y0-1.9,G*.42,y0-4.0],[G*.42,y0-4.0,G*.06,y0-6.2]],rf=[];
+  const cols=[[122,104,86],[104,88,74],[88,76,66]];
+  lv.forEach((L,li)=>{const a=L[0],b=L[2],ya=L[1],yb=L[3];
+   [[[-a,ya,a],[a,ya,a],[-b,yb,b],[b,yb,b],[0,.3,1]],[[a,ya,a],[a,ya,-a],[b,yb,b],[b,yb,-b],[1,.3,0]],[[a,ya,-a],[-a,ya,-a],[b,yb,-b],[-b,yb,-b],[0,.3,-1]],[[-a,ya,-a],[-a,ya,a],[-b,yb,-b],[-b,yb,b],[-1,.3,0]]].forEach(f=>{
+    const n=f[4],m=pj((f[0][0]+f[3][0])/2,(f[0][1]+f[3][1])/2,(f[0][2]+f[3][2])/2);
+    const n1x=n[0]*cw-n[2]*sw,n1z=n[0]*sw+n[2]*cw,nz2=n[1]*sp+n1z*cp,ny2=n[1]*cp-n1z*sp;
+    if(n1x*(0-m[3])+ny2*(0-m[4])+nz2*(D-m[5])<=0)return;
+    const l=Math.hypot(...n),nn=[n[0]/l,n[1]/l,n[2]/l];rf.push({p:[pj(...f[0]),pj(...f[1]),pj(...f[3]),pj(...f[2])],d:m[2],c:shadeC(cols[li],LF(nn),0,.95)})})});
+  rf.sort((x,y)=>y.d-x.d).forEach(r=>gfill(r.p,r.c,'rgba(0,0,0,.18)'))}
+ // земля
+ for(let i=-G;i<G;i++)for(let j=-G;j<G;j++){const v=(hash(i*31+j*17)-.5)*.1,b=((i+j)&1)?[124,198,90]:[114,188,82];
+  gfill([pj(i,0,j),pj(i+1,0,j),pj(i+1,0,j+1),pj(i,0,j+1)],shadeC([b[0]*(1+v),b[1]*(1+v),b[2]*(1+v)],UP))}
+ // грунтовая дорожка и подложка поля
+ gfill([pj(2.3,.01,-6.5),pj(7.3,.01,-6.5),pj(7.3,.01,4.1),pj(2.3,.01,4.1)],shadeC([112,86,50],UP),shadeC([86,64,36],UP));
+ for(let i=0;i<PATH.length-1;i++){const a=PATH[i],b=PATH[i+1],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),px=-dz/l*.5,pz=dx/l*.5;
+  gfill([pj(a[0]+px,.012,a[1]+pz),pj(b[0]+px,.012,b[1]+pz),pj(b[0]-px,.012,b[1]-pz),pj(a[0]-px,.012,a[1]-pz)],shadeC([205,172,112],UP),shadeC([178,146,90],UP))}
+ // стенки участка: травяная кромка + почва
+ [[[-G,0,G],[G,0,G],[0,0,1]],[[G,0,G],[G,0,-G],[1,0,0]],[[G,0,-G],[-G,0,-G],[0,0,-1]],[[-G,0,-G],[-G,0,G],[-1,0,0]]].forEach(([p,q,n])=>{
+  if(!vis([p[0],-.5,p[2]],[q[0],-.5,q[2]],n))return;const f=LF(n);
+  gfill([pj(p[0],-.38,p[2]),pj(q[0],-.38,q[2]),pj(q[0],-1.5,q[2]),pj(p[0],-1.5,p[2])],shadeC([139,92,56],f),'rgba(0,0,0,.12)');
+  gfill([pj(p[0],0,p[2]),pj(q[0],0,q[2]),pj(q[0],-.4,q[2]),pj(p[0],-.4,p[2])],shadeC([92,170,70],f),'rgba(0,0,0,.1)')});
+ // трава и цветочки (2D)
+ ctx.lineCap='round';
+ TUFTS.forEach(u=>{if(Math.abs(u.x)>G-.4||Math.abs(u.z)>G-.4)return;const p=pj(u.x,0,u.z),h=u.h*p[6]*1.6,sw2=Math.sin(t*1.5+u.a)*1.2;
+  ctx.strokeStyle=shadeC(u.c>.5?[70,150,55]:[96,176,70],UP);ctx.lineWidth=Math.max(.8,p[6]*.07);
+  ctx.beginPath();[-1,0,1].forEach(k=>{ctx.moveTo(p[0]+k*p[6]*.07,p[1]);ctx.lineTo(p[0]+k*p[6]*.16+sw2,p[1]-h*(k?.75:1))});ctx.stroke()});
+ DOTS.forEach(u=>{if(Math.abs(u.x)>G-.4||Math.abs(u.z)>G-.4)return;const p=pj(u.x,0,u.z);ctx.fillStyle=u.c;ctx.beginPath();ctx.arc(p[0],p[1]-p[6]*.04,Math.max(1,p[6]*.075),0,TAU);ctx.fill()});
+ // сборка граней
+ house(t);field(t);
+ for(let i=0;i<level-1&&i<ITEMS.length;i++)item(ITEMS[i],i,t);
+ // мягкие тени
+ SH.forEach(s=>{if(s.r<=0)return;[[1.35,.07],[1.1,.09],[.85,.1]].forEach(([m,a])=>{ctx.fillStyle='rgba(15,40,25,'+(a*(1-night*.5))+')';ctx.beginPath();for(let k=0;k<12;k++){const an=k/12*TAU,p=pj(s.x+.25+Math.cos(an)*s.r*m,.02,s.z+.18+Math.sin(an)*s.r*m);k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])}ctx.closePath();ctx.fill()})});
+ // грани: проекция, отсечение, сортировка
+ const out=[];
+ for(let fi=0;fi<F.length;fi++){const f=F[fi],v=f.v,pv=[];let sx=0,sy=0,sz=0,ok=true;
+  for(let k=0;k<v.length;k++){const p=pj(v[k][0],v[k][1],v[k][2]);if(p[2]<2){ok=false;break}pv.push(p);sx+=p[3];sy+=p[4];sz+=p[5]}
+  if(!ok)continue;const m=v.length;sx/=m;sy/=m;sz/=m;
+  const n=f.n,n1x=n[0]*cw-n[2]*sw,n1z=n[0]*sw+n[2]*cw,ny2=n[1]*cp-n1z*sp,nz2=n[1]*sp+n1z*cp;
+  if(n1x*(-sx)+ny2*(-sy)+nz2*(D-sz)<=0)continue;
+  out.push({pv,d:D-sz,c:f.c,n})}
+ out.sort((a,b)=>b.d-a.d);
+ ctx.lineJoin='round';ctx.lineWidth=.6;
+ for(const o of out){const fog=Math.min(.2,Math.max(0,(o.d-38)/70));let col,edge;
+  if(o.c.e&&night>.3){col='rgb('+o.c[0]+','+o.c[1]+','+o.c[2]+')';edge=col}
+  else{const f=LF(o.n);col=shadeC(o.c,f,fog);edge=shadeC(o.c,f,fog,.78)}
+  ctx.fillStyle=col;ctx.strokeStyle=edge;ctx.beginPath();ctx.moveTo(o.pv[0][0],o.pv[0][1]);for(let k=1;k<o.pv.length;k++)ctx.lineTo(o.pv[k][0],o.pv[k][1]);ctx.closePath();ctx.fill();ctx.stroke()}
+ // свечение фонарей ночью
+ if(night>.3)GL.forEach(g=>{const p=pj(g[0],g[1],g[2]),r=p[6]*1.7,gr=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],r);gr.addColorStop(0,'rgba(255,225,140,'+(.7*night)+')');gr.addColorStop(1,'rgba(255,225,140,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(p[0],p[1],r,0,TAU);ctx.fill()});
+ // бабочки
+ const nb=Math.min(6,(level/6)|0);
+ if(night<.6)for(let j=0;j<nb;j++){const ph=BFLY[j][0],ex=(G-2)*.55,bx=Math.cos(t*.35+ph)*ex+Math.sin(t*.8+ph*2)*1.2,bz=Math.sin(t*.28+ph*1.3)*ex,by=1.2+Math.sin(t*1.3+ph)*.35,p=pj(bx,by,bz),fl=Math.abs(Math.sin(t*14+ph)),sz=Math.max(3,p[6]*.2);
+  ctx.fillStyle=BFLY[j][1];[-1,1].forEach(sd=>{ctx.beginPath();ctx.ellipse(p[0]+sd*sz*.55*fl,p[1],sz*.55*(.35+.65*fl),sz*.7,sd*.5,0,TAU);ctx.fill()});ctx.fillStyle='#333';ctx.fillRect(p[0]-.6,p[1]-sz*.45,1.2,sz*.9)}
+ // пыльца над созревшим урожаем
+ if(crop==='ready'){for(let j=0;j<14;j++){const ph=(t*.35+j/14)%1,x=3.7+((j*37)%22)/10-.4+Math.sin(t+j)*.2,z=-5.2+((j*53)%90)/10,p=pj(x,.9+ph*1.4,z);ctx.fillStyle='rgba(255,226,120,'+(.9*(1-ph))+')';ctx.beginPath();ctx.arc(p[0],p[1],Math.max(1,p[6]*.05),0,TAU);ctx.fill()}}
+ // эффект открытия новой детали
+ EX=EX.filter(e=>t-e.t0<2.4);EX.forEach(e=>BORNFX.push({x:e.x,z:e.z,u:(t-e.t0)/2.4,r:e.r}));
+ BORNFX.forEach(b=>{const u=Math.min(1,b.u),p0=pj(b.x,.05,b.z);
+  const rr=(b.r+.4+u*2.2),a=1-u;ctx.strokeStyle='rgba(255,226,120,'+(.85*a)+')';ctx.lineWidth=2.5*(1-u*.5);ctx.beginPath();for(let k=0;k<=24;k++){const an=k/24*TAU,p=pj(b.x+Math.cos(an)*rr,.05,b.z+Math.sin(an)*rr);k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])}ctx.stroke();
+  for(let k=0;k<10;k++){const an=k/10*TAU+u*3,rad=(b.r+.2)*(.4+u),h=.3+u*2.2+(k%3)*.2,p=pj(b.x+Math.cos(an)*rad,h,b.z+Math.sin(an)*rad),sz=Math.max(1.5,p[6]*.09)*(1-u*.6);
+   ctx.fillStyle='rgba(255,240,170,'+(.95*a)+')';ctx.beginPath();ctx.moveTo(p[0],p[1]-sz*1.6);ctx.lineTo(p[0]+sz*.5,p[1]-sz*.5);ctx.lineTo(p[0]+sz*1.6,p[1]);ctx.lineTo(p[0]+sz*.5,p[1]+sz*.5);ctx.lineTo(p[0],p[1]+sz*1.6);ctx.lineTo(p[0]-sz*.5,p[1]+sz*.5);ctx.lineTo(p[0]-sz*1.6,p[1]);ctx.lineTo(p[0]-sz*.5,p[1]-sz*.5);ctx.closePath();ctx.fill()}});
+ // виньетка и подсветка
+ const vg=ctx.createRadialGradient(W/2,H*.5,Math.min(W,H)*.35,W/2,H*.5,Math.max(W,H)*.78);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(8,12,30,'+(.32+night*.12)+')');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+ if(night<.5){const wg=ctx.createLinearGradient(0,0,W,H);wg.addColorStop(0,'rgba(255,236,190,'+(.1*(1-night))+')');wg.addColorStop(.5,'rgba(255,236,190,0)');ctx.fillStyle=wg;ctx.fillRect(0,0,W,H)}
+ // интерфейс
+ const nI=Math.max(0,Math.min(99,level-1));let pw=pill(10,10,'🏡 Ур. '+level);pill(10+pw+6,10,'🧩 '+nI+'/99');
+ return out.length;
+}
+// ── цикл ──
+const active=()=>cv&&!document.hidden&&document.getElementById('farm')&&document.getElementById('farm').classList.contains('active');
+function loop(ts){
+ if(!active()){setTimeout(()=>requestAnimationFrame(loop),300);return}
+ if(ts-lastDraw>=30){lastDraw=ts;const t=ts/1000;
+  if(auto&&!drag&&Date.now()-lastTouch>2500)yaw+=.004;
+  draw(t)}
+ requestAnimationFrame(loop)}
+function init(canvas){
+ if(cv)return;cv=canvas;ctx=cv.getContext('2d');
+ cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y0:pitch,yaw0:yaw,y:e.clientY};try{cv.setPointerCapture(e.pointerId)}catch{}});
+ cv.addEventListener('pointermove',e=>{if(!drag)return;yaw=drag.yaw0+(e.clientX-drag.x)*.01;pitch=Math.max(22*D2R,Math.min(58*D2R,drag.y0+(e.clientY-drag.y)*.003))});
+ const end=()=>{drag=null;lastTouch=Date.now()};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+ requestAnimationFrame(loop)}
+function set(lv,stage,progress,o){
+ const now=performance.now()/1000;
+ if(inited&&lv>level){for(let l=level+1;l<=lv;l++)born[l]=now}
+ if(o){if(inited&&o.house>houseLv)EX.push({x:HOUSE.x,z:HOUSE.z,r:2.6,t0:now});
+  if(inited&&o.plots>plotsN)EX.push({x:4.8,z:-1.2,r:3.2,t0:now});
+  houseLv=o.house||houseLv;plotsN=o.plots||plotsN}
+ inited=true;level=lv;crop=stage;prog=progress}
+function _reset(){gv=GH(level)}
+function itemAt(lv){return ITEMS[lv-2]||null}
+function detailText(lv){const it=itemAt(lv);return it?it.emoji+' '+it.name:''}
+function badges(lv){const n=Math.max(0,Math.min(99,lv-1)),nx=itemAt(lv+1);
+ return '<span class="badge">🧩 Деталей: '+n+'/99</span>'+(nx?'<span class="badge">Следующая: '+detailText(lv+1)+'</span>':'<span class="badge">🏆 Ферма завершена</span>')}
+function bench(){const t0=performance.now();let n=0;for(let i=0;i<10;i++)n=draw(i*.3);return{ms:(performance.now()-t0)/10,faces:n}}
+return{init,set,itemAt,detailText,badges,_bench:bench,_reset,_draw:draw,_setView:(y,p)=>{yaw=y;if(p)pitch=p;auto=false},_hour:h=>{hourOverride=h}};
+})();
+document.addEventListener("DOMContentLoaded",()=>farm3d.init(document.getElementById("farm3d")));
+</script>
+<script>
 const tg=window.Telegram?.WebApp, $=id=>document.getElementById(id); let me=null, state=null; let currentMine=2;
 async function api(path,body){const opt={method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Telegram-Init-Data':tg?.initData||''}};if(body)opt.body=JSON.stringify(body);const r=await fetch(path,opt);let j={};try{j=await r.json()}catch{}if(!r.ok)throw new Error(j.error||'Ошибка');return j}
 function toast(t){$('toast').textContent=t;$('toast').style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>$('toast').style.display='none',1800)}
-function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));scrollTo({top:0,behavior:'smooth'});if(p==='shop')loadShop();}
+function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));scrollTo({top:0,behavior:'smooth'});if(p==='shop')loadShop();if(p==='rocket'||p==='higher')startLive(p);else liveGame=null;}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
 function render(){if(!state)return;const s=state;['stars','rouletteBalance','minesBalance','luckyBalance','hlBalance','rocketBalance','pStars'].forEach(id=>$(id)&&($(id).textContent=s.stars));$('level').textContent=s.farm.level;$('wheat').textContent=s.farm.wheat;$('energy').textContent=s.farm.energy;$('energyMax').textContent=s.farm.energy_max;$('levelBar').style.width=s.farm.level+'%';$('refCount').textContent=s.referrals;$('playerName').textContent=s.user.name||'Игрок';$('telegramIdentity').textContent=(s.user.username?'@'+s.user.username+' · ':'')+'Telegram ID: '+s.user.id; const photo=$('profilePhoto'); if(s.user.photo_url){photo.src=s.user.photo_url;photo.style.display='block'}else{photo.style.display='none'} renderFarm();}
-function renderFarm(){const f=state.farm;const lv=f.level;let stage=Math.min(5,Math.floor((lv-1)/20)+1);$('houseArt').textContent=stage>=5?'🏰':stage>=3?'🏠':stage>=2?'🏡':'🛖';const detail=lv<100?'▣'.repeat((lv-1)%5+1):'🏆';$('houseDetail').textContent='Уровень '+lv+'  '+detail;$('houseArt').style.transform='translateX(-50%) translateZ(30px) rotate('+(((lv%7)-3)*0.35)+'deg) scale('+(1+((lv-1)%10)*0.008)+')';$('barnArt').textContent=lv>=30?'🛖':'';$('tractorArt').textContent=lv>=20?'🚜':'';let plots=Math.min(10,2+Math.floor(lv/10));$('fieldArt').innerHTML=Array.from({length:plots},(_,i)=>`<div class="plot">${f.crop_stage==='ready'?'<span class="wheat">🌾</span>':f.crop_stage==='growing'?'<span class="wheat">🌱</span>':''}</div>`).join('');let badges=[];if(lv>=10)badges.push('🌳 Больше деревьев');if(lv>=20)badges.push('🚜 Трактор');if(lv>=30)badges.push('🛖 Амбар');if(lv>=50)badges.push('🏡 Большой дом');if(lv>=75)badges.push('🐄 Животные');if(lv>=100)badges.push('🏆 Максимальная ферма');$('visualBadges').innerHTML=badges.map(x=>`<span class="badge">${x}</span>`).join('');$('upgradeInfo').textContent=lv>=100?'Максимальный уровень':'Следующий уровень: '+(lv+1)+' · стоимость '+f.upgrade_cost+' 🌾';$('upgradeBtn').disabled=lv>=100||f.wheat<f.upgrade_cost;$('plantBtn').disabled=f.energy<1||f.crop_stage!=='empty';$('harvestBtn').disabled=f.energy<1||f.crop_stage!=='ready';let text=f.crop_stage==='empty'?'Поле свободно — посадите пшеницу.':f.crop_stage==='growing'?'Пшеница растёт… осталось '+Math.max(0,Math.ceil((f.ready_at-Date.now()/1000)/60))+' мин.':'Урожай готов!';$('farmTimer').textContent=text;}
-$('plantBtn').onclick=async()=>{try{state=await api('/api/farm/plant',{_csrf:1});render();toast('🌱 Посажено')}catch(e){toast(e.message)}};$('harvestBtn').onclick=async()=>{try{state=await api('/api/farm/harvest',{_csrf:1});render();toast('🌾 Урожай собран')}catch(e){toast(e.message)}};$('upgradeBtn').onclick=async()=>{try{state=await api('/api/farm/upgrade',{_csrf:1});render();toast('🏡 Ферма улучшена')}catch(e){toast(e.message)}};
+function renderUpgrades(f){const el=$('upgrades');if(!el||!f.upgrades)return;const html=f.upgrades.map(u=>{const mx=u.level>=u.max,ex=u.key==='farm'&&!mx?' · откроет: '+farm3d.detailText(u.level+1):'';
+ return '<div class="up"><div class="uph"><span><span class="ue">'+u.emoji+'</span> <b>'+esc(u.name)+'</b></span><span class="ul">Ур. '+u.level+'/'+u.max+'</span></div><div class="progress"><i style="width:'+u.level+'%"></i></div><div class="ut">'+esc(u.now)+(mx?' <b>· максимум</b>':' → <b>'+esc(u.next)+'</b>')+esc(ex)+'</div>'+(mx?'':'<button class="wide" data-k="'+u.key+'"'+(f.wheat<u.cost?' disabled':'')+'>⬆️ Улучшить за '+u.cost+' 🌾</button>')+'</div>'}).join('');
+ if(el.dataset.h!==html){el.dataset.h=html;el.innerHTML=html}}
+function renderFarm(){const f=state.farm,lv=f.level;if(!state._t)state._t=Date.now();const el=(Date.now()-state._t)/1000;const left=Math.max(0,(f.ready_in||0)-el);const cs=f.crop_stage==='growing'&&left<=0?'ready':f.crop_stage;const en=Math.min(f.energy_max,(f.energy_f!=null?f.energy_f:f.energy)+el*(f.regen||1/60));const enI=Math.floor(en+1e-9);$('energy').textContent=enI;
+const total=f.grow_seconds||300;farm3d.set(lv,cs,cs==='ready'?1:cs==='growing'?Math.min(1,Math.max(0,1-left/total)):0,{house:f.house_level,plots:f.plots});
+$('visualBadges').innerHTML=farm3d.badges(lv);
+renderUpgrades(f);$('farmStats').textContent='🟫 Грядок: '+f.plots+' · ~'+f.yield_est+' 🌾 за сбор · рост '+Math.floor(total/60)+':'+String(total%60).padStart(2,'0');
+$('plantBtn').disabled=enI<1||cs!=='empty';$('harvestBtn').disabled=enI<1||cs!=='ready';
+$('farmTimer').textContent=cs==='empty'?(enI<1?'Нет энергии — следующая через '+Math.ceil((1-(en%1))/(f.regen||1/60))+' с.':'Поле свободно — посадите пшеницу.'):cs==='growing'?'Пшеница растёт… осталось '+Math.floor(left/60)+':'+String(Math.ceil(left)%60).padStart(2,'0'):(enI<1?'Урожай готов, но нет энергии ⚡ — следующая через '+Math.ceil((1-(en%1))/(f.regen||1/60))+' с.':'Урожай готов!');}
+$('plantBtn').onclick=async()=>{try{state=await api('/api/farm/plant',{_csrf:1});render();toast('🌱 Посажено')}catch(e){toast(e.message)}};$('harvestBtn').onclick=async()=>{try{state=await api('/api/farm/harvest',{_csrf:1});render();toast('🌾 Урожай собран'+(state.harvested?' +'+state.harvested+' 🌾':''))}catch(e){toast(e.message)}};$('upgrades').onclick=async e=>{const b=e.target.closest('button[data-k]');if(!b||b.disabled)return;b.disabled=true;try{const k=b.dataset.k,r=await api('/api/farm/upgrade',{kind:k});state=r;render();const u=r.farm.upgrades.find(x=>x.key===k);toast(u.emoji+' '+u.name+' → ур. '+u.level+(k==='farm'?' · новая деталь: '+farm3d.detailText(u.level):' · '+u.now))}catch(err){toast(err.message)}};
 function setStake(id,v){v=Math.max(10,Math.floor(v/10)*10);$(id).textContent=v} function val(id){return Number($(id).textContent)}
 $('rMinus').onclick=()=>setStake('rStake',val('rStake')-10);$('rPlus').onclick=()=>setStake('rStake',val('rStake')+10);$('hlMinus').onclick=()=>setStake('hlStake',val('hlStake')-10);$('hlPlus').onclick=()=>setStake('hlStake',val('hlStake')+10);$('mMinus').onclick=()=>setStake('mStake',val('mStake')-10);$('mPlus').onclick=()=>setStake('mStake',val('mStake')+10);$('xMinus').onclick=()=>setStake('xStake',val('xStake')-10);$('xPlus').onclick=()=>setStake('xStake',val('xStake')+10);document.querySelectorAll('.quickM').forEach(b=>b.onclick=()=>setStake('mStake',+b.dataset.v));document.querySelectorAll('.quickX').forEach(b=>b.onclick=()=>setStake('xStake',+b.dataset.v));
 async function handleGameError(e,stake){const m=e.message||'Ошибка';const x=m.match(/Не хватает\s+(\d+)/i);if(x){const n=Number(x[1]);if(confirm('Не хватает '+n+' ⭐. Пополнить ровно '+n+' ⭐ через Telegram?'))await buy(n);return}toast(m)}
 async function roulette(){try{const stake=val('rStake');window.__desiredStake=stake;const r=await api('/api/game/roulette',{stake});state=r.state;$('rouletteMsg').textContent=r.reward>0?'🎉 +'+r.reward+' ⭐':'Пусто — 0 ⭐';render();$('rouletteHistory').innerHTML=r.history.map(x=>`<span class="num">${x>0?'+'+x:'—'}</span>`).join('')}catch(e){await handleGameError(e,val('rStake'))}}$('spinBtn').onclick=roulette;
-async function daily(){try{const r=await api('/api/game/daily',{_csrf:1});state=r.state;$('dailyResult').textContent='🎉 +'+r.reward+' ⭐';render();$('dailyBtn').disabled=true;updateDaily()}catch(e){toast(e.message)}}$('dailyBtn').onclick=daily;function updateDaily(){if(!state)return;let left=Math.max(0,state.daily_next*1000-Date.now());$('dailyTimer').textContent=left?'Следующая через '+Math.ceil(left/3600000)+'ч':'Доступна сейчас';$('dailyBtn').disabled=!!left}setInterval(updateDaily,1000);
-let mineStarted=false;function drawMines(){let cells=state?.mine?.open||[],revealed=state?.mine?.revealed||[];if(state?.mine)mineStarted=!state.mine.lost; $('mineGrid').innerHTML=Array.from({length:25},(_,i)=>{const safe=cells.includes(i),hit=revealed.includes(i)&&!safe;return `<button class="mine ${safe?'safe':''} ${hit?'hit':''}" data-i="${i}">${safe?'⭐':hit?'💣':''}</button>`}).join('');document.querySelectorAll('#mineGrid .mine').forEach(b=>b.onclick=()=>openMine(+b.dataset.i))}document.querySelectorAll('#mineTabs button').forEach(b=>b.onclick=()=>{currentMine=+b.dataset.mines;document.querySelectorAll('#mineTabs button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});$('mineStart').onclick=async()=>{try{const stake=val('mStake');window.__desiredStake=stake;const r=await api('/api/game/mines/start',{stake,mines:currentMine});state=r.state;mineStarted=true;drawMines();$('mineMult').textContent='1.00×';$('mineMsg').textContent='Раунд начат';render()}catch(e){await handleGameError(e,val('mStake'))}};async function openMine(i){if(!mineStarted)return toast('Сначала нажми Начать');try{const r=await api('/api/game/mines/open',{index:i});state=r.state;drawMines();$('mineMult').textContent=Number(r.multiplier||1).toFixed(2)+'×';if(r.mine){mineStarted=false;$('mineMsg').textContent='💣 Мина! Ставка потеряна';setStake('mStake',10);$('mineMult').textContent='1.00×';drawMines()}else $('mineMsg').textContent='⭐ Безопасно';render()}catch(e){toast(e.message)}}$('mineCash').onclick=async()=>{if(!mineStarted)return;try{const r=await api('/api/game/mines/cashout',{});state=r.state;mineStarted=false;$('mineMsg').textContent='💰 +'+r.payout+' ⭐';drawMines();render()}catch(e){toast(e.message)}};
-$('lMinus').onclick=()=>setStake('lStake',val('lStake')-10);$('lPlus').onclick=()=>setStake('lStake',val('lStake')+10);async function luckySpin(){try{const stake=val('lStake');window.__desiredStake=stake;const r=await api('/api/game/lucky',{stake});state=r.state;$('luckyMult').textContent=r.multiplier?r.multiplier.toFixed(2)+'×':'0×';$('luckyMsg').textContent=r.reward>0?'🎉 +'+r.reward+' ⭐':'💥 Проигрыш';$('luckyHistory').innerHTML=r.history.map(x=>`<span class="num">${x>0?'+'+x:'—'}</span>`).join('');render()}catch(e){await handleGameError(e,val('lStake'))}}$('luckyBtn').onclick=luckySpin;let hlBusy=false;$('higherBtn').onclick=()=>hl('higher');$('lowerBtn').onclick=()=>hl('lower');async function hl(choice){if(hlBusy)return;hlBusy=true;try{const stake=val('hlStake')||10;window.__desiredStake=stake;const r=await api('/api/game/higher',{choice,stake});state=r.state;$('currentNumber').textContent=r.number;$('hlResult').textContent=r.win?'✅ Выигрыш +'+r.payout+' ⭐':'❌ Проигрыш';$('hlHistory').innerHTML=r.history.map(n=>`<span class="num">${n}</span>`).join('');render()}catch(e){await handleGameError(e,val('hlStake'))}hlBusy=false}
-let rocketTimer=null;let rocketActive=false;async function rocketStart(){try{const stake=val('xStake');window.__desiredStake=stake;const r=await api('/api/game/rocket/start',{stake});state=r.state;rocketActive=true;$('rocketBox').classList.add('live');$('rocketMsg').textContent='Раунд идёт…';rocketTimer=setInterval(rocketTick,250);render()}catch(e){await handleGameError(e,val('xStake'))}}async function rocketTick(){try{const r=await api('/api/game/rocket/state',{});if(!r.active){clearInterval(rocketTimer);rocketActive=false;$('rocketBox').classList.remove('live');$('rocketMult').textContent=r.crash.toFixed(2)+'×';$('rocketMsg').textContent='💥 Краш на '+r.crash.toFixed(2)+'×';if(r.history)$('rocketHistory').innerHTML=r.history.map(n=>`<span class="num">${Number(n).toFixed(2)}×</span>`).join('');state=r.state;render();return}$('rocketMult').textContent=r.multiplier.toFixed(2)+'×'}catch(e){await handleGameError(e,val('xStake'))}}$('rocketStart').onclick=rocketStart;$('rocketCash').onclick=async()=>{if(!rocketActive)return;try{const r=await api('/api/game/rocket/cashout',{});clearInterval(rocketTimer);rocketActive=false;$('rocketMsg').textContent='💰 +'+r.payout+' ⭐';if(r.history)$('rocketHistory').innerHTML=r.history.map(n=>`<span class="num">${Number(n).toFixed(2)}×</span>`).join('');state=r.state;render()}catch(e){toast(e.message)}};
+async function daily(){try{const r=await api('/api/game/daily',{_csrf:1});state=r.state;$('dailyResult').textContent='🎉 +'+r.reward+' ⭐';render();$('dailyBtn').disabled=true;updateDaily()}catch(e){toast(e.message)}}$('dailyBtn').onclick=daily;function updateDaily(){if(!state)return;let left=Math.max(0,state.daily_next*1000-Date.now());$('dailyTimer').textContent=left?'Следующая через '+Math.ceil(left/3600000)+'ч':'Доступна сейчас';$('dailyBtn').disabled=!!left}setInterval(updateDaily,1000);setInterval(()=>{if(state&&document.getElementById('farm').classList.contains('active'))renderFarm()},1000);
+let mineStarted=false;function drawMines(){let cells=state?.mine?.open||[],revealed=state?.mine?.revealed||[];if(state?.mine)mineStarted=!state.mine.lost&&!state.mine.done; $('mineGrid').innerHTML=Array.from({length:25},(_,i)=>{const safe=cells.includes(i),hit=revealed.includes(i)&&!safe;return `<button class="mine ${safe?'safe':''} ${hit?'hit':''}" data-i="${i}">${safe?'⭐':hit?'💣':''}</button>`}).join('');document.querySelectorAll('#mineGrid .mine').forEach(b=>b.onclick=()=>openMine(+b.dataset.i))}document.querySelectorAll('#mineTabs button').forEach(b=>b.onclick=()=>{currentMine=+b.dataset.mines;document.querySelectorAll('#mineTabs button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});$('mineStart').onclick=async()=>{try{const stake=val('mStake');window.__desiredStake=stake;const r=await api('/api/game/mines/start',{stake,mines:currentMine});state=r.state;mineStarted=true;drawMines();$('mineMult').textContent='1.00×';$('mineMsg').textContent='Раунд начат';render()}catch(e){await handleGameError(e,val('mStake'))}};async function openMine(i){if(!mineStarted)return toast('Сначала нажми Начать');if((state?.mine?.open||[]).includes(i))return;try{const r=await api('/api/game/mines/open',{index:i});state=r.state;drawMines();$('mineMult').textContent=Number(r.multiplier||1).toFixed(2)+'×';if(r.mine){mineStarted=false;$('mineMsg').textContent='💣 Мина! Ставка потеряна';setStake('mStake',10);$('mineMult').textContent='1.00×';drawMines()}else $('mineMsg').textContent='⭐ Безопасно';render()}catch(e){toast(e.message)}}$('mineCash').onclick=async()=>{if(!mineStarted)return;try{const r=await api('/api/game/mines/cashout',{});state=r.state;mineStarted=false;$('mineMsg').textContent='💰 +'+r.payout+' ⭐';drawMines();render()}catch(e){toast(e.message)}};
+$('lMinus').onclick=()=>setStake('lStake',val('lStake')-10);$('lPlus').onclick=()=>setStake('lStake',val('lStake')+10);async function luckySpin(){try{const stake=val('lStake');window.__desiredStake=stake;const r=await api('/api/game/lucky',{stake});state=r.state;$('luckyMult').textContent=r.multiplier?r.multiplier.toFixed(2)+'×':'0×';$('luckyMsg').textContent=r.reward>0?'🎉 +'+r.reward+' ⭐':'💥 Проигрыш';$('luckyHistory').innerHTML=r.history.map(x=>`<span class="num">${x>0?'+'+x:'—'}</span>`).join('');render()}catch(e){await handleGameError(e,val('lStake'))}}$('luckyBtn').onclick=luckySpin;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isActive=id=>document.getElementById(id)&&document.getElementById(id).classList.contains('active');
+let LV={rocket:null,higher:null},LOFF=0,liveTimer=null,liveGame=null,lastRound={rocket:0,higher:0};
+const snow=()=>Date.now()/1000+LOFF;
+function liveApply(game,r){LV[game]=r;LOFF=r.round.server_now-Date.now()/1000;if(r.state){const old=Number(state&&state.stars);state=r.state;if(Number(state.stars)!==old)render()}}
+function liveLoop(){clearTimeout(liveTimer);const g=liveGame;if(!g||!isActive(g)){return}
+ if(document.hidden){liveTimer=setTimeout(liveLoop,800);return}
+ api('/api/game/'+g+'/state',{}).then(r=>{if(g===liveGame)liveApply(g,r)}).catch(()=>{}).finally(()=>{const ph=LV[g]&&LV[g].round.phase;liveTimer=setTimeout(liveLoop,g==='rocket'&&ph==='flying'?250:700)})}
+function startLive(g){liveGame=g;liveLoop()}
+setInterval(()=>{if(isActive('rocket'))rRender();else if(isActive('higher'))hRender()},100);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&liveGame)liveLoop()});
+function betsHtml(B,game,myId){if(!B||!B.list.length)return '<span style="opacity:.6;font-size:13px">Пока никто не поставил</span>';
+ return B.list.map(x=>{let t=esc(x.name)+' · '+x.stake+' ⭐';if(game==='higher')t+=' '+(x.choice==='higher'?'🔼':'🔽');
+  if(x.status==='won')t+=' → +'+x.payout+(game==='rocket'&&x.at?' ('+Number(x.at).toFixed(2)+'×)':'');else if(x.status==='lost')t+=' ✖';
+  return '<span class="bet '+(x.status==='won'?'won':x.status==='lost'?'lost':'')+'">'+t+'</span>'}).join('')}
+// ───── Rocket ─────
+function rRender(){const R=LV.rocket;if(!R)return;const r=R.round,t=snow();let ph=r.phase;if(ph==='betting'&&t>=r.lock_at)ph='flying';
+ let m=1;if(ph==='flying')m=Math.max(1,Math.floor(Math.exp(r.k*(t-r.lock_at))*100)/100);if(ph==='result')m=r.crash;
+ if(r.id!==lastRound.rocket){lastRound.rocket=r.id;$('rocketMsg').textContent=''}
+ const box=$('rocketBox');box.classList.toggle('flying',ph==='flying');box.classList.toggle('crashed',ph==='result');
+ $('rocketMult').textContent=m.toFixed(2)+'×';
+ $('rStatus').textContent=ph==='betting'?'⏳ Приём ставок: '+Math.max(0,r.lock_at-t).toFixed(1)+' с':ph==='flying'?'🚀 Ракета летит…':'💥 Краш на '+m.toFixed(2)+'×';
+ const p=Math.min(1,Math.log(m)/Math.log(12)),ic=$('rocketIcon');ic.textContent=ph==='result'?'💥':'🚀';ic.style.left=(12+p*72)+'%';ic.style.top=(78-p*52)+'%';
+ const mb=R.my_bet;$('rMyBet').textContent=mb?mb.stake+' ⭐'+(mb.auto_at?' · авто '+mb.auto_at+'×':''):'—';
+ $('rocketBet').disabled=!(ph==='betting'&&!mb);$('rocketBet').textContent=ph==='betting'?(mb?'✅ Ставка принята':'🚀 Сделать ставку'):'⏳ Ждём следующий раунд';
+ const open=mb&&mb.status==='open'&&ph==='flying';$('rocketCash').disabled=!open;$('rocketCash').textContent=open?'💰 Забрать '+Math.floor(mb.stake*m)+' ⭐':'💰 Забрать';
+ if(mb&&ph==='result'){$('rocketMsg').textContent=mb.status==='won'?'✅ Выигрыш +'+mb.payout+' ⭐ ('+Number(mb.at).toFixed(2)+'×)':'💥 Ставка проиграна'}
+ else if(mb&&mb.status==='won'&&ph==='flying')$('rocketMsg').textContent='✅ Забрали +'+mb.payout+' ⭐ ('+Number(mb.at).toFixed(2)+'×)';
+ $('rocketHistory').innerHTML=R.history.map(x=>'<span class="num '+(x.crash>=2?'good':'bad')+'">'+Number(x.crash).toFixed(2)+'×</span>').join('')||'<span style="opacity:.6;font-size:13px">Пока нет раундов</span>';
+ $('rPlayers').textContent='· '+R.bets.count+' игр., '+R.bets.total+' ⭐';$('rBets').innerHTML=betsHtml(R.bets,'rocket');
+ $('rFair').innerHTML='Хеш раунда №'+r.id+' (SHA-256 от seed, известен ДО раунда):<br><code>'+r.seed_hash+'</code><br>'+(r.seed?'Seed раскрыт: <code>'+r.seed+'</code><br>':'Seed будет раскрыт после краша.<br>')+'Результат = SHA-256("out:"+seed); краш = max(1, 0.95 / (1 − u)), где u — первые 13 hex-символов, делённые на 16<sup>13</sup>.';
+ $('rocketBalance').textContent=state?state.stars:0}
+$('rocketBet').onclick=async()=>{const stake=val('xStake');window.__desiredStake=stake;const a=parseFloat($('rAuto').value);try{const r=await api('/api/game/rocket/bet',{stake,auto:a>0?a:null});liveApply('rocket',r);rRender()}catch(e){await handleGameError(e,stake)}};
+$('rocketCash').onclick=async()=>{try{const r=await api('/api/game/rocket/cashout',{});liveApply('rocket',r);rRender();if(r.cashed)toast('💰 +'+r.cashed.payout+' ⭐ ('+r.cashed.mult.toFixed(2)+'×)')}catch(e){toast(e.message);liveLoop()}};
+// ───── Больше / Меньше ─────
+let hDraw=50;
+function hRender(){const R=LV.higher;if(!R)return;const r=R.round,t=snow();let ph=r.phase;if(ph==='betting'&&t>=r.lock_at)ph='drawing';if(ph==='drawing'&&t>=r.reveal_at&&r.result==null)ph='drawing';
+ if(r.id!==lastRound.higher){lastRound.higher=r.id;$('hlResult').textContent=''}
+ const mb=R.my_bet,nb=$('currentNumber'),od=R.odds;
+ nb.classList.toggle('drawing',ph==='drawing');nb.classList.remove('win','lose');
+ if(ph==='betting'){nb.textContent=r.base;$('hStatus').textContent='⏳ Приём ставок: '+Math.max(0,r.lock_at-t).toFixed(1)+' с · число '+r.base}
+ else if(ph==='drawing'){hDraw=1+Math.floor(Math.random()*100);nb.textContent=hDraw;$('hStatus').textContent='🎲 Выпадает число…'}
+ else{nb.textContent=r.result;nb.classList.add(r.result>r.base?'win':r.result<r.base?'lose':'');$('hStatus').textContent=(r.result>r.base?'🔼 ':r.result<r.base?'🔽 ':'🟰 ')+'Выпало '+r.result+' (было '+r.base+')'}
+ [['higher','🔼 Больше'],['lower','🔽 Меньше']].forEach(([k,label])=>{const b=$(k+'Btn');b.textContent=label+' ×'+od[k].mult.toFixed(2);b.disabled=!(ph==='betting'&&!mb&&od[k].ok);b.classList.toggle('sel',!!mb&&mb.choice===k)});
+ if(mb&&ph==='betting')$('hlResult').textContent='✅ Ставка принята: '+mb.stake+' ⭐ на '+(mb.choice==='higher'?'больше':'меньше');
+ else if(mb&&ph==='result')$('hlResult').textContent=mb.status==='won'?'✅ Выигрыш +'+mb.payout+' ⭐':'❌ Проигрыш';
+ else if(!mb&&ph==='betting'&&!od.higher.ok&&!od.lower.ok)$('hlResult').textContent='В этом раунде ставки недоступны (число слишком крайнее)';
+ $('hlHistory').innerHTML=R.history.map(x=>'<span class="num '+(x.result>x.base?'up':x.result<x.base?'down':'')+'">'+x.base+' → '+x.result+'</span>').join('')||'<span style="opacity:.6;font-size:13px">Пока нет раундов</span>';
+ $('hPlayers').textContent='· '+R.bets.count+' игр., '+R.bets.total+' ⭐';$('hBets').innerHTML=betsHtml(R.bets,'higher');
+ $('hFair').innerHTML='Хеш раунда №'+r.id+' (SHA-256 от seed, известен ДО раунда):<br><code>'+r.seed_hash+'</code><br>'+(r.seed?'Seed раскрыт: <code>'+r.seed+'</code><br>':'Seed будет раскрыт после розыгрыша.<br>')+'Число = (первые 8 hex-символов SHA-256("out:"+seed)) mod 100 + 1.';
+ $('hlBalance').textContent=state?state.stars:0}
+async function hlBet(choice){const stake=val('hlStake')||10;window.__desiredStake=stake;try{const r=await api('/api/game/higher/bet',{choice,stake});liveApply('higher',r);hRender()}catch(e){await handleGameError(e,stake)}}
+$('higherBtn').onclick=()=>hlBet('higher');$('lowerBtn').onclick=()=>hlBet('lower');
+
 async function loadShop(){try{const r=await api('/api/shop');const missing=Math.max(0,(window.__desiredStake||10)-Number(state?.stars||0));$('quickTopup').style.display=missing?'block':'none';$('quickTopup').innerHTML=missing?'⚡ Не хватает '+missing+' ⭐ — можно сразу пополнить нужную сумму. <button class="wide" style="margin-top:7px" onclick="buy('+missing+')">Пополнить '+missing+' ⭐</button>':'';$('shopButtons').innerHTML=r.amounts.map(a=>`<button class="wide" style="margin-top:7px" onclick="buy(${a})">⭐ ${a} Telegram Stars → ${a} Farm Stars</button>`).join('')}catch(e){$('shopMsg').textContent=e.message}}
 async function buy(a){a=Math.floor(Number(a));if(!Number.isFinite(a)||a<1)return toast('Введите количество от 1 ⭐');try{const before=Number(state?.stars||0);const r=await api('/api/payments/create-invoice',{amount:a});if(!tg?.openInvoice){location.href=r.url;return}tg.openInvoice(r.url,async(status)=>{if(status==='paid'){for(let i=0;i<12;i++){await new Promise(x=>setTimeout(x,500));try{const fresh=await api('/api/me');state=fresh;render();if(Number(fresh.stars)>=before+a){toast('✅ +'+a+' Farm Stars');return}}catch{}}toast('✅ Оплата получена. Баланс обновится через несколько секунд')}else if(status==='failed'){toast('❌ Telegram не подтвердил оплату')}else if(status==='cancelled'){toast('Оплата отменена')}})}catch(e){toast(e.message)}}
 $('customTopupBtn').onclick=()=>buy($('customTopup').value);
 $('shareReferral').onclick=async()=>{try{const r=await api('/api/referral/link');$('refLink').style.display='block';$('refLink').textContent=r.link;if(navigator.clipboard)await navigator.clipboard.writeText(r.link);toast('🔗 Ссылка скопирована')}catch(e){toast(e.message)}};
 async function heartbeat(){try{await api('/api/referral/heartbeat',{visible:document.visibilityState==='visible'})}catch{}}setInterval(heartbeat,15000);document.addEventListener('visibilitychange',heartbeat);
-async function init(){if(tg){tg.ready();tg.expand()}try{state=await api('/api/me');render();drawMines();updateDaily();if(state?.mine){mineStarted=true;$('mineMult').textContent=Number(state.mine.multiplier||1).toFixed(2)+'×';$('mineMsg').textContent='Продолжается сохранённый раунд';drawMines()}if(state?.rocket_active){rocketActive=true;$('rocketBox').classList.add('live');$('rocketMsg').textContent='Восстановление раунда…';rocketTimer=setInterval(rocketTick,250)}}catch(e){toast(e.message)}}init();
+async function init(){if(tg){tg.ready();tg.expand()}try{state=await api('/api/me');render();drawMines();updateDaily();if(state?.mine){mineStarted=true;$('mineMult').textContent=Number(state.mine.multiplier||1).toFixed(2)+'×';$('mineMsg').textContent='Продолжается сохранённый раунд';drawMines()}}catch(e){toast(e.message)}}init();
 </script></body></html>
