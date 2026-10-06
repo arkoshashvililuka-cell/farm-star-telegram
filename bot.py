@@ -75,6 +75,16 @@ CREATE TABLE IF NOT EXISTS results(
  id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, type TEXT NOT NULL,
  value TEXT NOT NULL, created_at REAL NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_results ON results(user_id, type, id);
+CREATE TABLE IF NOT EXISTS rounds(
+ id INTEGER PRIMARY KEY AUTOINCREMENT, game TEXT NOT NULL, bet_start REAL NOT NULL, lock_at REAL NOT NULL,
+ crash_at REAL NOT NULL, end_ts REAL NOT NULL, seed TEXT NOT NULL, seed_hash TEXT NOT NULL,
+ crash REAL, base INTEGER, result INTEGER, settled INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS idx_rounds_game ON rounds(game, id);
+CREATE TABLE IF NOT EXISTS bets(
+ id INTEGER PRIMARY KEY AUTOINCREMENT, round_id INTEGER NOT NULL, user_id INTEGER NOT NULL, game TEXT NOT NULL,
+ stake INTEGER NOT NULL, choice TEXT, auto_at REAL, cashed_at REAL, payout INTEGER NOT NULL DEFAULT 0,
+ status TEXT NOT NULL DEFAULT 'open', created_at REAL NOT NULL, UNIQUE(round_id, user_id));
+CREATE INDEX IF NOT EXISTS idx_bets_round ON bets(round_id);
 CREATE TABLE IF NOT EXISTS ledger(
  id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, delta INTEGER NOT NULL,
  reason TEXT NOT NULL, balance INTEGER, created_at REAL NOT NULL);
@@ -91,6 +101,9 @@ def init_db():
     cols = {r['name'] for r in c.execute('PRAGMA table_info(users)')}
     if 'photo_url' not in cols:
         c.execute('ALTER TABLE users ADD COLUMN photo_url TEXT')
+    for col in ('house_level', 'field_level', 'energy_level', 'growth_level'):
+        if col not in cols:
+            c.execute(f'ALTER TABLE users ADD COLUMN {col} INTEGER NOT NULL DEFAULT 1')
     pcols = {r['name'] for r in c.execute('PRAGMA table_info(payments)')}
     if 'refunded' not in pcols:
         c.execute('ALTER TABLE payments ADD COLUMN refunded INTEGER NOT NULL DEFAULT 0')
@@ -136,7 +149,7 @@ def send(uid, text, markup=None):
 
 def web_markup():
     return {'inline_keyboard': [
-        [{'text': '🌟 Открыть ботру', 'web_app': {'url': WEB_APP_URL}}],
+        [{'text': '🌟 Открыть Farm Star', 'web_app': {'url': WEB_APP_URL}}],
         [{'text': '🛒 Пополнить Farm Stars', 'callback_data': 'shop'}],
         [{'text': '👥 Рефералы', 'callback_data': 'ref'}]]}
 
@@ -199,26 +212,106 @@ def get_user(c, uid):
     return r
 
 
+# ── ферма: 5 улучшений, каждое до 100 уровня ──
+MAXLV = 100
+UP_COL = {'farm': 'farm_level', 'house': 'house_level', 'fields': 'field_level', 'energy': 'energy_level', 'growth': 'growth_level'}
+UP_BASE = {'farm': 40, 'fields': 60, 'energy': 50, 'growth': 70, 'house': 90}
+UP_RATE = 1.065
+UP_META = {'farm': ('🌾', 'Ферма'), 'house': ('🏡', 'Здание'), 'fields': ('🟫', 'Поля'),
+           'energy': ('⚡', 'Энергия'), 'growth': ('⏱', 'Время роста')}
+
+
+def up_cost(kind, lvl):                      # цена перехода с уровня lvl на lvl+1
+    return int(round(UP_BASE[kind] * UP_RATE ** (lvl - 1)))
+
+
+def plots_for(fl):
+    return min(10, 2 + fl // 12)             # 2 грядки, +1 каждые 12 уровней полей, максимум 10
+
+
+def energy_max(el):
+    return 10 + (el - 1)                     # 10 … 109
+
+
+def energy_regen(el):
+    return (1 + 0.03 * (el - 1)) / 60.0      # энергии в секунду: 1/мин … ~4/мин
+
+
+def grow_seconds(gl):
+    return int(round(300 * 0.1 ** ((gl - 1) / 99)))   # 5:00 … 0:30
+
+
+def per_plot(farm, fields, house):
+    return (6 + farm) * (1 + 0.015 * (fields - 1)) * (1 + 0.01 * (house - 1))
+
+
+def harvest_base(r):
+    return plots_for(r['field_level']) * per_plot(r['farm_level'], r['field_level'], r['house_level'])
+
+
+def fmt_time(sec):
+    return f'{sec // 60}:{sec % 60:02d}'
+
+
+def up_texts(kind, r, lvl):
+    """Что даёт уровень lvl (для показа «сейчас → дальше»)."""
+    f, fl, h, e, g = r['farm_level'], r['field_level'], r['house_level'], r['energy_level'], r['growth_level']
+    if kind == 'farm':
+        return f'Урожай с грядки: {6 + lvl}'
+    if kind == 'house':
+        return f'Бонус к урожаю: +{lvl - 1}%'
+    if kind == 'fields':
+        return f'Грядок: {plots_for(lvl)} · плодородие +{round(1.5 * (lvl - 1), 1):g}%'
+    if kind == 'energy':
+        return f'Макс. энергия: {energy_max(lvl)} · +{energy_regen(lvl) * 60:.2f}/мин'
+    return f'Время роста: {fmt_time(grow_seconds(lvl))}'
+
+
+def upgrades_view(r):
+    out = []
+    for kind, col in UP_COL.items():
+        lvl = r[col]
+        out.append({'key': kind, 'emoji': UP_META[kind][0], 'name': UP_META[kind][1], 'level': lvl, 'max': MAXLV,
+                    'cost': up_cost(kind, lvl) if lvl < MAXLV else None,
+                    'now': up_texts(kind, r, lvl), 'next': up_texts(kind, r, lvl + 1) if lvl < MAXLV else None})
+    return out
+
+
 def energy_now(r, now=None):
     now = now or time.time()
-    mx = min(100, 10 + r['farm_level'] - 1)
+    mx = energy_max(r['energy_level'])
     ts = float(r['energy_ts'] or now)
-    return min(mx, float(r['energy']) + (now - ts) / 60), mx
+    return min(mx, float(r['energy']) + max(0.0, now - ts) * energy_regen(r['energy_level'])), mx
 
 
 def upgrade_cost(level):
-    return max(20, int(40 * level ** 1.25))
+    return up_cost('farm', level)
 
 
-def state(c, uid):
+def state(c, uid, now=None):
+    now = now or time.time()
     r = get_user(c, uid)
-    cur, mx = energy_now(r)
-    return {'user': {'id': r['id'], 'username': r['username'],
-                     'name': r['first_name'] or r['username'] or 'Игрок', 'photo_url': r['photo_url']},
-            'stars': r['stars'], 'referrals': r['referrals'], 'daily_next': r['daily_next'],
-            'farm': {'level': r['farm_level'], 'wheat': r['wheat'], 'energy': int(cur), 'energy_max': mx,
-                     'crop_stage': r['crop_stage'], 'ready_at': r['crop_ready'],
-                     'upgrade_cost': upgrade_cost(r['farm_level'])}}
+    cur, mx = energy_now(r, now)
+    stage = r['crop_stage']
+    ready_in = max(0.0, r['crop_ready'] - now) if stage == 'growing' else 0.0
+    if stage == 'growing' and ready_in <= 0:
+        stage = 'ready'
+    out = {'user': {'id': r['id'], 'username': r['username'],
+                    'name': r['first_name'] or r['username'] or 'Игрок', 'photo_url': r['photo_url']},
+           'stars': r['stars'], 'referrals': r['referrals'], 'daily_next': r['daily_next'],
+           'farm': {'level': r['farm_level'], 'wheat': r['wheat'], 'energy': int(cur), 'energy_f': cur,
+                    'energy_max': mx, 'regen': energy_regen(r['energy_level']), 'crop_stage': stage,
+                    'ready_at': r['crop_ready'], 'ready_in': ready_in, 'upgrade_cost': upgrade_cost(r['farm_level']),
+                    'house_level': r['house_level'], 'field_level': r['field_level'], 'energy_level': r['energy_level'],
+                    'growth_level': r['growth_level'], 'plots': plots_for(r['field_level']),
+                    'grow_seconds': grow_seconds(r['growth_level']), 'yield_est': int(round(harvest_base(r))),
+                    'upgrades': upgrades_view(r)}}
+    g = c.execute('SELECT * FROM games WHERE id=? AND status="active"', (f'{uid}:mines',)).fetchone()
+    if g:
+        dat = json.loads(g['data'])
+        out['mine'] = {'open': dat['open'], 'multiplier': dat.get('multiplier', 1.0), 'stake': g['stake'],
+                       'mine_count': dat['mine_count']}
+    return out
 
 
 def log_ledger(c, uid, delta, reason):
@@ -311,7 +404,7 @@ def h_plant(c, uid, d, now, notes):
     if cur < 1:
         raise ApiError('Нет энергии')
     c.execute('UPDATE users SET energy=?,energy_ts=?,crop_stage="growing",crop_planted=?,crop_ready=? WHERE id=?',
-              (cur - 1, now, now, now + max(60, 300 - r['farm_level'] * 2), uid))
+              (cur - 1, now, now, now + grow_seconds(r['growth_level']), uid))
     return state(c, uid)
 
 
@@ -320,29 +413,43 @@ def h_harvest(c, uid, d, now, notes):
     cur, _ = energy_now(r, now)
     if r['crop_stage'] == 'empty':
         raise ApiError('Сначала посадите пшеницу')
-    if now < r['crop_ready']:
+    if now < r['crop_ready'] - 1:
         raise ApiError('Пшеница ещё не созрела')
     if cur < 1:
         raise ApiError('Нет энергии')
-    amount = 10 + r['farm_level'] * 3 + rng.randint(0, max(2, r['farm_level']))
+    amount = max(1, int(round(harvest_base(r) * rng.uniform(.92, 1.08))))
     c.execute('UPDATE users SET wheat=wheat+?,energy=?,energy_ts=?,crop_stage="empty",crop_planted=0,crop_ready=0 '
               'WHERE id=?', (amount, cur - 1, now, uid))
-    return state(c, uid)
+    out = state(c, uid)
+    out['harvested'] = amount
+    return out
 
 
 def h_upgrade(c, uid, d, now, notes):
+    kind = d.get('kind', 'farm')
+    if kind not in UP_COL:
+        raise ApiError('Неизвестное улучшение')
     r = get_user(c, uid)
-    cost = upgrade_cost(r['farm_level'])
-    if r['farm_level'] >= 100:
+    lvl = r[UP_COL[kind]]
+    if lvl >= MAXLV:
         raise ApiError('Максимальный уровень')
-    if r['wheat'] < cost:
+    cost = up_cost(kind, lvl)
+    if c.execute('UPDATE users SET wheat=wheat-? WHERE id=? AND wheat>=?', (cost, uid, cost)).rowcount != 1:
         raise ApiError(f'Нужно ещё {cost - r["wheat"]} 🌾')
-    c.execute('UPDATE users SET wheat=wheat-?,farm_level=farm_level+1 WHERE id=?', (cost, uid))
-    return state(c, uid)
+    if kind == 'energy':             # накопленную энергию фиксируем по старой скорости и дарим +1 ⚡
+        e, _ = energy_now(r, now)
+        c.execute('UPDATE users SET energy=?,energy_ts=? WHERE id=?', (min(energy_max(lvl + 1), e + 1), now, uid))
+    c.execute(f'UPDATE users SET {UP_COL[kind]}={UP_COL[kind]}+1 WHERE id=?', (uid,))
+    out = state(c, uid)
+    out['upgraded'] = kind
+    return out
 
 
 def h_invoice(c, uid, d, now, notes):
-    amount = int(d.get('amount', 0))
+    try:
+        amount = int(d.get('amount', 0))
+    except (TypeError, ValueError):
+        raise ApiError('Некорректная сумма')
     if amount not in SHOP_AMOUNTS:
         raise ApiError('Некорректная сумма')
     payload = f'topup:{uid}:{amount}:{secrets.token_hex(8)}'
@@ -378,26 +485,6 @@ def h_lucky(c, uid, d, now, notes):
     return spin(c, uid, d, LUCKY, 'lucky')
 
 
-def h_higher(c, uid, d, now, notes):
-    stake, choice = stake_of(d), d.get('choice')
-    if choice not in ('higher', 'lower'):
-        raise ApiError('Некорректные данные')
-    r = c.execute('SELECT value FROM results WHERE user_id=? AND type="higher_current" ORDER BY id DESC LIMIT 1',
-                  (uid,)).fetchone()
-    old = int(r['value']) if r else 50
-    p = (100 - old) / 100 if choice == 'higher' else (old - 1) / 100      # chance to win (ties lose)
-    if p < .05 or p > .9:
-        raise ApiError('Для этого числа выбор слишком невыгоден/очевиден — выберите другую сторону')
-    spend(c, uid, stake, 'higher:bet')
-    n = rng.randint(1, 100)
-    win = n > old if choice == 'higher' else n < old
-    payout = int(math.floor(stake * EDGE / p)) if win else 0
-    earn(c, uid, payout, 'higher:win')
-    record(c, uid, 'higher_current', n)
-    record(c, uid, 'higher', n)
-    return {'number': n, 'win': win, 'payout': payout, 'history': history(c, uid, 'higher'), 'state': state(c, uid)}
-
-
 # ── mines ──
 def mine_mult(mines, safe):
     m = EDGE * math.comb(25, safe) / math.comb(25 - mines, safe)
@@ -409,7 +496,11 @@ def active_game(c, uid, typ):
 
 
 def h_mines_start(c, uid, d, now, notes):
-    stake, mines = stake_of(d), int(d.get('mines', 2))
+    stake = stake_of(d)
+    try:
+        mines = int(d.get('mines', 2))
+    except (TypeError, ValueError):
+        raise ApiError('Некорректное число мин')
     if mines not in (2, 5, 7):
         raise ApiError('Некорректное число мин')
     if active_game(c, uid, 'mines'):
@@ -427,13 +518,17 @@ def h_mines_open(c, uid, d, now, notes):
     g = active_game(c, uid, 'mines')
     if not g:
         raise ApiError('Нет активной игры')
-    idx, dat = int(d.get('index', -1)), json.loads(g['data'])
+    try:
+        idx = int(d.get('index', -1))
+    except (TypeError, ValueError):
+        raise ApiError('Некорректная клетка')
+    dat = json.loads(g['data'])
     if idx < 0 or idx >= 25 or idx in dat['open']:
         raise ApiError('Некорректная клетка')
     if idx in dat['mines']:
         c.execute('UPDATE games SET status="lost",updated_at=? WHERE id=?', (now, g['id']))
         st = state(c, uid)
-        st['mine'] = {'open': dat['open']}
+        st['mine'] = {'open': dat['open'], 'revealed': dat['mines'], 'lost': True}
         return {'mine': True, 'lost': g['stake'], 'multiplier': 1, 'mines': dat['mines'], 'state': st}
     dat['open'].append(idx)
     dat['multiplier'] = mine_mult(dat['mine_count'], len(dat['open']))
@@ -452,80 +547,264 @@ def h_mines_cashout(c, uid, d, now, notes):
     earn(c, uid, payout, 'mines:cashout')
     c.execute('UPDATE games SET status="cashed",updated_at=? WHERE id=?', (now, g['id']))
     st = state(c, uid)
-    st['mine'] = {'open': dat['open']}
+    st['mine'] = {'open': dat['open'], 'revealed': dat['mines'], 'done': True}
     return {'payout': payout, 'state': st}
 
 
-# ── rocket ──
-def rocket_crash():
-    x = EDGE / (1 - rng.random())          # P(crash >= m) = 0.95/m  ->  RTP 95% at any cash-out point
-    return min(MAX_MULT, max(1.0, round(x, 2)))
+# ───────────────────────── shared rounds (Rocket, Higher/Lower): one game for everybody ─────────────────────────
+K_R = 0.1                              # rocket multiplier = exp(K_R * seconds_since_launch)
+R_BET, R_SHOW = 10, 4                  # rocket: betting window, seconds to show the crash
+H_BET, H_DRAW, H_SHOW = 10, 2, 4       # higher/lower: betting window, "drawing" animation, result display
+IDLE_PAUSE = 120                       # rounds are paused when nobody has looked at the game for this long
+HIST = 10
+LAST_VIEW = 0.0
 
 
-def rocket_mult(dat, now):
-    return min(dat['crash'], 1 + (now - dat['started']) * 0.55)
+def out_hash(seed):
+    return hashlib.sha256(('out:' + seed).encode()).hexdigest()
 
 
-def settle_rocket_loss(c, g, dat, uid, now):
-    c.execute('UPDATE games SET status="lost",updated_at=? WHERE id=?', (now, g['id']))
-    record(c, uid, 'rocket', f'{dat["crash"]:.2f}')
+def calc_crash(seed):
+    u = int(out_hash(seed)[:13], 16) / 16 ** 13
+    return min(MAX_MULT, max(1.0, math.floor(EDGE / (1 - u) * 100) / 100))
 
 
-def h_rocket_start(c, uid, d, now, notes):
-    stake = stake_of(d)
-    g = active_game(c, uid, 'rocket')
-    if g:
-        dat = json.loads(g['data'])
-        if rocket_mult(dat, now) < dat['crash'] - 1e-9:
-            raise ApiError('Раунд уже идёт')
-        settle_rocket_loss(c, g, dat, uid, now)
-    spend(c, uid, stake, 'rocket:bet')
-    dat = {'stake': stake, 'crash': rocket_crash(), 'started': now}
-    c.execute('INSERT OR REPLACE INTO games VALUES(?,?,?,?,?,?,?,?)',
-              (f'{uid}:rocket', uid, 'rocket', 'active', stake, json.dumps(dat), now, now))
-    return {'state': state(c, uid), 'history': history(c, uid, 'rocket', float)}
+def calc_number(seed):
+    return int(out_hash(seed)[:8], 16) % 100 + 1
 
 
-def h_rocket_state(c, uid, d, now, notes):
-    g = c.execute('SELECT * FROM games WHERE id=? AND type="rocket"', (f'{uid}:rocket',)).fetchone()
-    if not g:
-        return {'active': False, 'crash': 1, 'state': state(c, uid)}
-    dat = json.loads(g['data'])
-    mult = rocket_mult(dat, now)
-    active = g['status'] == 'active' and mult < dat['crash'] - 1e-9
-    if g['status'] == 'active' and not active:
-        settle_rocket_loss(c, g, dat, uid, now)
-    out = {'active': active, 'multiplier': mult, 'state': state(c, uid)}
-    out['crash'] = 1 if active else dat['crash']      # the crash point is revealed only after the round ends
-    if not active:
-        out['history'] = history(c, uid, 'rocket', float)
+def latest(c, game):
+    return c.execute('SELECT * FROM rounds WHERE game=? ORDER BY id DESC LIMIT 1', (game,)).fetchone()
+
+
+def create_round(c, game, start):
+    seed = secrets.token_hex(16)
+    sh = hashlib.sha256(seed.encode()).hexdigest()
+    if game == 'rocket':
+        crash = calc_crash(seed)
+        lock = start + R_BET
+        crash_at = lock + math.log(crash) / K_R
+        c.execute('INSERT INTO rounds(game,bet_start,lock_at,crash_at,end_ts,seed,seed_hash,crash) VALUES(?,?,?,?,?,?,?,?)',
+                  (game, start, lock, crash_at, crash_at + R_SHOW, seed, sh, crash))
+    else:
+        prev = c.execute('SELECT result FROM rounds WHERE game="higher" AND settled=1 ORDER BY id DESC LIMIT 1').fetchone()
+        base = prev['result'] if prev else rng.randint(20, 80)
+        lock = start + H_BET
+        reveal = lock + H_DRAW
+        c.execute('INSERT INTO rounds(game,bet_start,lock_at,crash_at,end_ts,seed,seed_hash,base,result) VALUES(?,?,?,?,?,?,?,?,?)',
+                  (game, start, lock, reveal, reveal + H_SHOW, seed, sh, base, calc_number(seed)))
+
+
+def mult_at(r, now):
+    return max(1.0, math.floor(math.exp(K_R * max(0.0, now - r['lock_at'])) * 100) / 100)
+
+
+def hl_odds(base):
+    out = {}
+    for ch, p in (('higher', (100 - base) / 100), ('lower', (base - 1) / 100)):
+        ok = .05 <= p <= .9
+        out[ch] = {'p': p, 'mult': round(EDGE / p, 2) if p > 0 else 0, 'ok': ok}
     return out
 
 
+def pay_bet(c, b, payout, status, reason, cashed_at=None):
+    c.execute('UPDATE bets SET status=?,payout=?,cashed_at=? WHERE id=?', (status, payout, cashed_at, b['id']))
+    if payout:
+        earn(c, b['user_id'], payout, reason)
+
+
+def settle(c, r):
+    bets = c.execute('SELECT * FROM bets WHERE round_id=? AND status="open"', (r['id'],)).fetchall()
+    if r['game'] == 'rocket':
+        for b in bets:
+            if b['auto_at'] and b['auto_at'] < r['crash']:
+                pay_bet(c, b, int(math.floor(b['stake'] * b['auto_at'])), 'won', 'rocket:cashout', b['auto_at'])
+            else:
+                pay_bet(c, b, 0, 'lost', 'rocket:cashout')
+    else:
+        odds = hl_odds(r['base'])
+        for b in bets:
+            win = (b['choice'] == 'higher' and r['result'] > r['base']) or (b['choice'] == 'lower' and r['result'] < r['base'])
+            p = odds[b['choice']]['p']
+            pay_bet(c, b, int(math.floor(b['stake'] * EDGE / p)) if win and p > 0 else 0, 'won' if win else 'lost', 'higher:win')
+    c.execute('UPDATE rounds SET settled=1 WHERE id=?', (r['id'],))
+
+
+def auto_cashouts(c, r, now):
+    m = mult_at(r, now)
+    for b in c.execute('SELECT * FROM bets WHERE round_id=? AND status="open" AND auto_at IS NOT NULL AND auto_at<=?',
+                       (r['id'], m)).fetchall():
+        if b['auto_at'] < r['crash']:
+            pay_bet(c, b, int(math.floor(b['stake'] * b['auto_at'])), 'won', 'rocket:cashout', b['auto_at'])
+
+
+def advance(c, game, now):
+    r = latest(c, game)
+    if r is None:
+        create_round(c, game, now)
+        return
+    if not r['settled'] and now >= r['crash_at']:
+        settle(c, r)
+    elif game == 'rocket' and not r['settled'] and now >= r['lock_at']:
+        auto_cashouts(c, r, now)
+    if now >= r['end_ts']:
+        create_round(c, game, r['end_ts'] if now - r['end_ts'] < 3 else now)
+
+
+def ticker():
+    last_prune = 0.0
+    while True:
+        time.sleep(.25)
+        try:
+            now = time.time()
+            if now - LAST_VIEW > IDLE_PAUSE:
+                continue
+            with transaction() as c:
+                advance(c, 'rocket', now)
+                advance(c, 'higher', now)
+                if now - last_prune > 3600:
+                    last_prune = now
+                    for g in ('rocket', 'higher'):
+                        c.execute('DELETE FROM rounds WHERE game=? AND id<(SELECT MAX(id) FROM rounds WHERE game=?)-3000', (g, g))
+                    c.execute('DELETE FROM bets WHERE created_at<?', (now - 7 * 86400,))
+        except Exception as e:
+            print('ticker error', repr(e))
+
+
+def phase_of(r, now):
+    if now < r['lock_at']:
+        return 'betting'
+    if now < r['crash_at']:
+        return 'flying' if r['game'] == 'rocket' else 'drawing'
+    return 'result'
+
+
+def public_bets(c, r):
+    rows = c.execute('SELECT b.*,u.first_name,u.username FROM bets b JOIN users u ON u.id=b.user_id '
+                     'WHERE b.round_id=? ORDER BY b.stake DESC,b.id LIMIT 30', (r['id'],)).fetchall()
+    total = c.execute('SELECT COUNT(*),COALESCE(SUM(stake),0) FROM bets WHERE round_id=?', (r['id'],)).fetchone()
+    return {'count': total[0], 'total': total[1],
+            'list': [{'name': (x['first_name'] or x['username'] or 'Игрок')[:12], 'stake': x['stake'], 'status': x['status'],
+                      'payout': x['payout'], 'at': x['cashed_at'], 'choice': x['choice']} for x in rows]}
+
+
+def my_bet(c, r, uid):
+    b = c.execute('SELECT * FROM bets WHERE round_id=? AND user_id=?', (r['id'], uid)).fetchone()
+    return None if not b else {'stake': b['stake'], 'status': b['status'], 'payout': b['payout'], 'auto_at': b['auto_at'],
+                               'at': b['cashed_at'], 'choice': b['choice']}
+
+
+def round_view(r, now):
+    ph = phase_of(r, now)
+    v = {'id': r['id'], 'phase': ph, 'server_now': now, 'bet_start': r['bet_start'], 'lock_at': r['lock_at'],
+         'end_ts': r['end_ts'], 'seed_hash': r['seed_hash'], 'seed': r['seed'] if r['settled'] else None, 'k': K_R,
+         'min_stake': MIN_STAKE, 'max_stake': MAX_STAKE}
+    if r['game'] == 'rocket':
+        v['mult'] = r['crash'] if ph == 'result' else (mult_at(r, now) if ph == 'flying' else 1.0)
+        v['crash'] = r['crash'] if ph == 'result' else None
+    else:
+        v['base'] = r['base']
+        v['reveal_at'] = r['crash_at']
+        v['result'] = r['result'] if ph == 'result' else None
+    return v
+
+
+def mark_view():
+    global LAST_VIEW
+    LAST_VIEW = time.time()
+
+
+def h_rocket_state(c, uid, d, now, notes):
+    mark_view()
+    advance(c, 'rocket', now)
+    r = latest(c, 'rocket')
+    hist = [{'id': x['id'], 'crash': x['crash']} for x in c.execute(
+        'SELECT id,crash FROM rounds WHERE game="rocket" AND settled=1 ORDER BY id DESC LIMIT ?', (HIST,))]
+    return {'round': round_view(r, now), 'my_bet': my_bet(c, r, uid), 'bets': public_bets(c, r), 'history': hist,
+            'state': state(c, uid)}
+
+
+def h_rocket_bet(c, uid, d, now, notes):
+    mark_view()
+    advance(c, 'rocket', now)
+    r = latest(c, 'rocket')
+    if now >= r['lock_at']:
+        raise ApiError('Приём ставок закрыт, дождитесь следующего раунда')
+    stake = stake_of(d)
+    auto = d.get('auto')
+    if auto not in (None, '', 0):
+        try:
+            auto = round(float(auto), 2)
+        except (TypeError, ValueError):
+            raise ApiError('Некорректный авто-вывод')
+        if auto < 1.1 or auto > MAX_MULT:
+            raise ApiError(f'Авто-вывод от 1.1× до {int(MAX_MULT)}×')
+    else:
+        auto = None
+    if c.execute('SELECT 1 FROM bets WHERE round_id=? AND user_id=?', (r['id'], uid)).fetchone():
+        raise ApiError('Ставка на этот раунд уже сделана')
+    spend(c, uid, stake, 'rocket:bet')
+    c.execute('INSERT INTO bets(round_id,user_id,game,stake,auto_at,created_at) VALUES(?,?,?,?,?,?)',
+              (r['id'], uid, 'rocket', stake, auto, now))
+    return h_rocket_state(c, uid, d, now, notes)
+
+
 def h_rocket_cashout(c, uid, d, now, notes):
-    g = active_game(c, uid, 'rocket')
-    if not g:
-        raise ApiError('Нет активного раунда')
-    dat = json.loads(g['data'])
-    mult = rocket_mult(dat, now)
-    if mult >= dat['crash'] - 1e-9:
-        settle_rocket_loss(c, g, dat, uid, now)
-        raise ApiError('🚀 Ракета уже сгорела')       # NB: raising rolls back; loss is settled by /rocket/state
-    payout = int(math.floor(g['stake'] * mult))
-    earn(c, uid, payout, 'rocket:cashout')
-    c.execute('UPDATE games SET status="cashed",updated_at=? WHERE id=?', (now, g['id']))
-    record(c, uid, 'rocket', f'{mult:.2f}')
-    return {'payout': payout, 'multiplier': mult, 'history': history(c, uid, 'rocket', float), 'state': state(c, uid)}
+    advance(c, 'rocket', now)
+    r = latest(c, 'rocket')
+    b = c.execute('SELECT * FROM bets WHERE round_id=? AND user_id=? AND status="open"', (r['id'], uid)).fetchone()
+    if not b:
+        raise ApiError('Нет активной ставки')
+    if phase_of(r, now) != 'flying':
+        raise ApiError('Сейчас нельзя вывести')
+    m = mult_at(r, now)
+    if m >= r['crash']:
+        raise ApiError('🚀 Ракета уже улетела')
+    pay_bet(c, b, int(math.floor(b['stake'] * m)), 'won', 'rocket:cashout', m)
+    out = h_rocket_state(c, uid, d, now, notes)
+    out['cashed'] = {'mult': m, 'payout': int(math.floor(b['stake'] * m))}
+    return out
+
+
+def h_higher_state(c, uid, d, now, notes):
+    mark_view()
+    advance(c, 'higher', now)
+    r = latest(c, 'higher')
+    hist = [{'id': x['id'], 'base': x['base'], 'result': x['result']} for x in c.execute(
+        'SELECT id,base,result FROM rounds WHERE game="higher" AND settled=1 ORDER BY id DESC LIMIT ?', (HIST,))]
+    return {'round': round_view(r, now), 'odds': hl_odds(r['base']), 'my_bet': my_bet(c, r, uid), 'bets': public_bets(c, r),
+            'history': hist, 'state': state(c, uid)}
+
+
+def h_higher_bet(c, uid, d, now, notes):
+    mark_view()
+    advance(c, 'higher', now)
+    r = latest(c, 'higher')
+    if now >= r['lock_at']:
+        raise ApiError('Приём ставок закрыт, дождитесь следующего раунда')
+    choice = d.get('choice')
+    if choice not in ('higher', 'lower'):
+        raise ApiError('Некорректные данные')
+    if not hl_odds(r['base'])[choice]['ok']:
+        raise ApiError('Этот вариант сейчас недоступен — выберите другую сторону')
+    stake = stake_of(d)
+    if c.execute('SELECT 1 FROM bets WHERE round_id=? AND user_id=?', (r['id'], uid)).fetchone():
+        raise ApiError('Ставка на этот раунд уже сделана')
+    spend(c, uid, stake, 'higher:bet')
+    c.execute('INSERT INTO bets(round_id,user_id,game,stake,choice,created_at) VALUES(?,?,?,?,?,?)',
+              (r['id'], uid, 'higher', stake, choice, now))
+    return h_higher_state(c, uid, d, now, notes)
 
 
 GET_ROUTES = {'/api/me': h_me, '/api/shop': h_shop, '/api/referral/link': h_ref_link}
 POST_ROUTES = {
     '/api/referral/heartbeat': h_heartbeat, '/api/farm/plant': h_plant, '/api/farm/harvest': h_harvest,
     '/api/farm/upgrade': h_upgrade, '/api/payments/create-invoice': h_invoice, '/api/game/daily': h_daily,
-    '/api/game/roulette': h_roulette, '/api/game/lucky': h_lucky, '/api/game/higher': h_higher,
+    '/api/game/roulette': h_roulette, '/api/game/lucky': h_lucky,
+    '/api/game/higher/state': h_higher_state, '/api/game/higher/bet': h_higher_bet,
     '/api/game/mines/start': h_mines_start, '/api/game/mines/open': h_mines_open,
-    '/api/game/mines/cashout': h_mines_cashout, '/api/game/rocket/start': h_rocket_start,
-    '/api/game/rocket/state': h_rocket_state, '/api/game/rocket/cashout': h_rocket_cashout}
+    '/api/game/mines/cashout': h_mines_cashout, '/api/game/rocket/state': h_rocket_state,
+    '/api/game/rocket/bet': h_rocket_bet, '/api/game/rocket/cashout': h_rocket_cashout}
 
 
 # ───────────────────────── rate limit ─────────────────────────
@@ -616,7 +895,7 @@ class Handler(BaseHTTPRequestHandler):
                 _, uid, amount, payload = n
                 try:
                     r = tg('createInvoiceLink', {
-                        'title': 'ботру — Farm Stars', 'description': f'Пополнение Farm Stars на {amount} ⭐',
+                        'title': 'Farm Star — пополнение', 'description': f'Пополнение Farm Stars на {amount} ⭐',
                         'payload': payload, 'currency': 'XTR',
                         'prices': json.dumps([{'label': f'{amount} Farm Stars', 'amount': amount}])})
                     out = {'url': r['result']}
@@ -766,7 +1045,7 @@ def process_updates():
                             send(uid, '🎉 Вы перешли по реферальной ссылке. Откройте Mini App и оставайтесь в нём '
                                       f'минимум {REF_SECONDS} секунд, чтобы реферал был засчитан.', web_markup())
                         else:
-                            send(uid, '🌟 Добро пожаловать в ботру!', web_markup())
+                            send(uid, '🌟 Добро пожаловать в Farm Star!', web_markup())
                 elif 'callback_query' in up:
                     q = up['callback_query']
                     uid, data = q['from']['id'], q.get('data')
@@ -787,6 +1066,7 @@ def main():
     if BOT_TOKEN:
         threading.Thread(target=process_updates, daemon=True).start()
     threading.Thread(target=backup_loop, daemon=True).start()
+    threading.Thread(target=ticker, daemon=True).start()
     print(f'Listening on {PORT}, DB={DB_PATH}, WEB_APP_URL={WEB_APP_URL}')
     ThreadingHTTPServer(('0.0.0.0', PORT), Handler).serve_forever()
 
